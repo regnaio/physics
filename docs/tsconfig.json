@@ -1,0 +1,19 @@
+{
+		"compilerOptions": {
+			"rootDir": "./ts",
+			"outDir": "./js",
+			"moduleResolution": "node",
+			"target": "es2017",
+			"importsNotUsedAsValues": "error",
+			// "isolatedModules": true,
+			"sourceMap": true,
+			"esModuleInterop": true,
+			"skipLibCheck": true,
+			"forceConsistentCasingInFileNames": true,
+			"lib": ["DOM", "ES2017", "WebWorker"],
+			"allowUmdGlobalAccess": true,
+			"typeRoots": ["./@types"], // https://stackoverflow.com/questions/31173738/typescript-getting-error-ts2304-cannot-find-name-require
+			"types": ["BABYLON", "Ammo", "dat", "Stats"],
+			"strict": true,
+		}
+	}
