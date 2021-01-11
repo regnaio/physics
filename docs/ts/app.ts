@@ -6,7 +6,7 @@ import { LogLevel, clog } from './utils';
 const parts = window.location.pathname.split('/');
 const route = parts.pop() || parts.pop();
 
-// clog('route', LogLevel.Info, route);
+clog('route', LogLevel.Info, route);
 
 switch (route) {
   case 'noworker':
@@ -16,5 +16,5 @@ switch (route) {
     new WithWorker();
     break;
   default:
-    clog(`Invalid pathname ${route}`, LogLevel.Error);
+    clog(`Invalid route ${route}`, LogLevel.Error);
 }
