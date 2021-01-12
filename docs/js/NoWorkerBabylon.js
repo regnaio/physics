@@ -1,23 +1,20 @@
-import { CollisionFilterGroup, CollisionFilterMask } from './physicsHelper';
-import { Physics } from './Physics';
+import { GRAVITY, CollisionFilterGroup, CollisionFilterMask } from './physicsHelper';
 import { GUI } from './GUI';
 import { now, LogLevel, clog } from './utils';
-export class NoWorker {
+export class NoWorkerBabylon {
     constructor() {
         this._canvas = document.getElementById('renderCanvas');
-        this._engine = new BABYLON.Engine(this._canvas);
+        this._engine = new BABYLON.Engine(this._canvas, true, {
+            deterministicLockstep: true,
+            lockstepMaxSteps: 4
+        });
         this._scene = new BABYLON.Scene(this._engine);
-        this._camera = new BABYLON.ArcRotateCamera('', 0, Math.PI / 4, 150, new BABYLON.Vector3(), this._scene);
+        this._camera = new BABYLON.ArcRotateCamera('', 0, Math.PI / 4, 100, new BABYLON.Vector3(), this._scene);
         this._light = new BABYLON.HemisphericLight('', new BABYLON.Vector3(0, 100, 0), this._scene);
-        this._physics = new Physics();
         this._gui = new GUI();
         clog('NoWorker', LogLevel.Info);
         this.setupCamera();
-        this.loadEnvironment();
-        this.setupGUI();
-        this._scene.registerBeforeRender(() => {
-            this._physics.onRenderUpdate(this._engine.getDeltaTime() / 1000);
-        });
+        this.setupPhysics();
         this._engine.runRenderLoop(() => {
             this._scene.render();
             this._gui.update();
@@ -30,22 +27,61 @@ export class NoWorker {
         this._camera.attachControl(this._canvas, false);
         this._camera.setTarget(new BABYLON.Vector3(0, 10, 0));
     }
+    async setupPhysics() {
+        var _a, _b;
+        try {
+            if (typeof Ammo === 'function') {
+                await Ammo();
+            }
+            const physEngine = new BABYLON.AmmoJSPlugin(false);
+            this._scene.enablePhysics(new BABYLON.Vector3(0, GRAVITY, 0), physEngine);
+            clog(`_engine.isDeterministicLockStep(): ${this._engine.isDeterministicLockStep()}`, LogLevel.Info);
+            clog(`_engine.getLockstepMaxSteps(): ${this._engine.getLockstepMaxSteps()}`, LogLevel.Info);
+            clog(`_engine.getTimeStep(): ${this._engine.getTimeStep()}`, LogLevel.Info);
+            clog(`physEngine.getTimeStep(): ${physEngine.getTimeStep()}`, LogLevel.Info);
+            clog(`_scene.getPhysicsEngine()?.getTimeStep(): ${(_a = this._scene.getPhysicsEngine()) === null || _a === void 0 ? void 0 : _a.getTimeStep()}`, LogLevel.Info);
+            clog(`_scene.getPhysicsEngine()?.getSubTimeStep(): ${(_b = this._scene.getPhysicsEngine()) === null || _b === void 0 ? void 0 : _b.getSubTimeStep()}`, LogLevel.Info);
+            this.loadEnvironment();
+            this.setupGUI();
+        }
+        catch (err) {
+            clog('setupPhysics(): err', LogLevel.Fatal, err);
+        }
+    }
     loadEnvironment() {
-        const slide = BABYLON.MeshBuilder.CreateBox('', { width: 25, height: 75 }, this._scene);
+        const slide = BABYLON.MeshBuilder.CreateBox('', { width: 10, height: 20 }, this._scene);
         const slideMaterial = new BABYLON.StandardMaterial('', this._scene);
         slideMaterial.diffuseColor = new BABYLON.Color3(1, 0, 0);
         slideMaterial.freeze();
         slide.material = slideMaterial;
-        slide.position.x -= 25;
+        slide.position.x -= 10;
         slide.rotationQuaternion = new BABYLON.Vector3(Math.PI / 3, 0, 0).toQuaternion();
         slide.freezeWorldMatrix();
-        const ground = BABYLON.MeshBuilder.CreateBox('', { width: 100, height: 1, depth: 100 }, this._scene);
+        slide.physicsImpostor = new BABYLON.PhysicsImpostor(slide, BABYLON.PhysicsImpostor.BoxImpostor, {
+            mass: 0,
+            friction: 1,
+            // @ts-ignore
+            group: CollisionFilterGroup.Environment,
+            mask: CollisionFilterMask.Environment
+        }, this._scene);
+        slide.physicsImpostor.physicsBody.setCollisionFlags(1); // CF_STATIC_OBJECT
+        slide.physicsImpostor.physicsBody.setActivationState(5); // DISABLE_SIMULATION
+        const ground = BABYLON.MeshBuilder.CreateBox('', { width: 50, height: 1, depth: 50 }, this._scene);
         const groundMaterial = new BABYLON.StandardMaterial('', this._scene);
         groundMaterial.diffuseColor = new BABYLON.Color3(0.5, 0.5, 0.5);
         groundMaterial.freeze();
         ground.material = groundMaterial;
         ground.position.y -= 0.5;
         ground.freezeWorldMatrix();
+        ground.physicsImpostor = new BABYLON.PhysicsImpostor(ground, BABYLON.PhysicsImpostor.BoxImpostor, {
+            mass: 0,
+            friction: 1,
+            // @ts-ignore
+            group: CollisionFilterGroup.Environment,
+            mask: CollisionFilterMask.Environment
+        }, this._scene);
+        ground.physicsImpostor.physicsBody.setCollisionFlags(1); // CF_STATIC_OBJECT
+        ground.physicsImpostor.physicsBody.setActivationState(5); // DISABLE_SIMULATION
     }
     setupGUI() {
         const mesh = BABYLON.MeshBuilder.CreateBox('', { width: 0.5 }, this._scene);
@@ -58,7 +94,7 @@ export class NoWorker {
                 clog('Add', LogLevel.Debug);
                 for (let i = 0; i < 500; i++) {
                     const instancedMesh = mesh.createInstance('');
-                    instancedMesh.position = new BABYLON.Vector3(BABYLON.Scalar.RandomRange(-50, 50), 50, BABYLON.Scalar.RandomRange(-50, 50));
+                    instancedMesh.position = new BABYLON.Vector3(BABYLON.Scalar.RandomRange(-10, 10), 50, BABYLON.Scalar.RandomRange(-10, 10));
                     instancedMesh.rotationQuaternion = new BABYLON.Vector3(BABYLON.Scalar.RandomRange(-Math.PI, Math.PI), BABYLON.Scalar.RandomRange(-Math.PI, Math.PI), BABYLON.Scalar.RandomRange(-Math.PI, Math.PI)).toQuaternion();
                     instancedMesh.physicsImpostor = new BABYLON.PhysicsImpostor(instancedMesh, BABYLON.PhysicsImpostor.BoxImpostor, {
                         mass: 1,
@@ -103,4 +139,4 @@ export class NoWorker {
         });
     }
 }
-//# sourceMappingURL=NoWorker.js.map
+//# sourceMappingURL=NoWorkerBabylon.js.map

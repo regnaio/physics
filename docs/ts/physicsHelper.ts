@@ -1,3 +1,21 @@
+export enum ActivationState {
+  ACTIVE_TAG = 1,
+  ISLAND_SLEEPING,
+  WANTS_DEACTIVATION,
+  DISABLE_DEACTIVATION,
+  DISABLE_SIMULATION
+}
+
+export enum CollisionFlag {
+  CF_STATIC_OBJECT = 1,
+  CF_KINEMATIC_OBJECT = 2,
+  CF_NO_CONTACT_RESPONSE = 4,
+  CF_CUSTOM_MATERIAL_CALLBACK = 8,
+  CF_CHARACTER_OBJECT = 16,
+  CF_DISABLE_VISUALIZE_OBJECT = 32,
+  CF_DISABLE_SPU_COLLISION_PROCESSING = 64
+}
+
 export const GRAVITY = -9.8;
 
 // How filters work: https://github.com/schteppe/cannon.js/blob/master/demos/collisionFilter.html
@@ -10,5 +28,5 @@ export enum CollisionFilterGroup {
 
 export enum CollisionFilterMask {
   Environment = CollisionFilterGroup.Other,
-  Other = CollisionFilterGroup.Environment
+  Other = CollisionFilterGroup.Environment | CollisionFilterGroup.Other
 }
