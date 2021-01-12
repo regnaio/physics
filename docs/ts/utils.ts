@@ -12,7 +12,7 @@ export enum LogLevel {
   Fatal,
   All
 }
-const colors = ['#ffffff', '#00ff00', '#00ffff', '#ffff00', '#ff00ff', '#ff0000','#ffffff'];
+const colors = ['#ffffff', '#00ff00', '#00ffff', '#ffff00', '#ff00ff', '#ff0000', '#ffffff'];
 const maxLogLevel = LogLevel.Fatal;
 const throwLogLevel = LogLevel.Error;
 export const clog = (message: string, logLevel: LogLevel, ...extra: any[]) => {
@@ -23,3 +23,7 @@ export const clog = (message: string, logLevel: LogLevel, ...extra: any[]) => {
   // TODO: Fix server crash due to client throw
   if (logLevel >= throwLogLevel) throw message;
 };
+
+export function randomRange(min: number, max: number): number {
+  return min === max ? min : Math.random() * (max - min) + min;
+}

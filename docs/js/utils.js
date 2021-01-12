@@ -23,4 +23,7 @@ export const clog = (message, logLevel, ...extra) => {
     if (logLevel >= throwLogLevel)
         throw message;
 };
+export function randomRange(min, max) {
+    return min === max ? min : Math.random() * (max - min) + min;
+}
 //# sourceMappingURL=utils.js.map

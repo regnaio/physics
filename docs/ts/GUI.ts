@@ -23,6 +23,8 @@ export class GUI {
     physicsStepComputeTime: 0
   };
 
+  private _shouldUpdatePhysicsStepComputeTime = false;
+
   constructor() {
     document.body.appendChild(this._fps.dom);
     this._fps.dom.style.cssText = 'position:absolute;top:0px;left:0px;z-index:4';
@@ -37,16 +39,20 @@ export class GUI {
     this._memory.showPanel(2);
 
     this._datGUI.domElement.style.cssText = 'position:absolute;top:0px;right:0px;z-index:4';
+
+    setInterval(() => {
+      this._shouldUpdatePhysicsStepComputeTime = true;
+    }, 500);
   }
 
   set datData(datData: DatData) {
     this._datData = datData;
 
-    const localPlayerFolder = this._datGUI.addFolder('LocalPlayer');
-    localPlayerFolder.open();
-    localPlayerFolder.add(this._datData, 'add').name('Click to add');
-    localPlayerFolder.add(this._datData, 'remove').name('Click to remove all');
-    localPlayerFolder.add(this._datData, 'physicsStepComputeTime').name('Physics').step(1e-2).listen();
+    const folder = this._datGUI.addFolder('Folder');
+    folder.open();
+    folder.add(this._datData, 'add').name('Click to add');
+    folder.add(this._datData, 'remove').name('Click to remove all');
+    folder.add(this._datData, 'physicsStepComputeTime').name('Physics').step(1e-2).listen();
   }
 
   update(): void {
@@ -56,6 +62,9 @@ export class GUI {
   }
 
   updatePhysicsStepComputeTime(physicsStepComputeTime: number): void {
-    this._datData.physicsStepComputeTime = physicsStepComputeTime;
+    if (this._shouldUpdatePhysicsStepComputeTime) {
+      this._datData.physicsStepComputeTime = physicsStepComputeTime;
+      this._shouldUpdatePhysicsStepComputeTime = false;
+    }
   }
 }
