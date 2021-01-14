@@ -30,3 +30,6 @@ export enum CollisionFilterMask {
   Environment = CollisionFilterGroup.Other,
   Other = CollisionFilterGroup.Environment | CollisionFilterGroup.Other
 }
+
+export const MIN_DELTA_TIME = 1 / 1000;
+export const MAX_DELTA_TIME = 1;

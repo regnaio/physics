@@ -27,8 +27,18 @@ export class NoWorker {
     this.setupGUI();
     this.loadAxes();
 
-    this._physics.onPhysicsUpdate = () => {
+    this._physics.onPhysicsUpdate = motionStates => {
+      for (let i = 0; i < 500; i++) {
+        const { position, rotation } = motionStates[i];
+        const instancedMesh = this._instancedMeshes[i];
 
+        if (instancedMesh.rotationQuaternion === undefined) {
+          instancedMesh.rotationQuaternion = new BABYLON.Quaternion();
+        }
+
+        instancedMesh.position.set(position.x, position.y, position.z);
+        instancedMesh.rotationQuaternion?.set(rotation.x, rotation.y, rotation.z, rotation.w);
+      }
     }
 
     this._scene.registerBeforeRender(() => {
@@ -86,8 +96,7 @@ export class NoWorker {
 
         for (let i = 0; i < 500; i++) {
           const instancedMesh = mesh.createInstance('');
-
-          this._physics.add();
+          instancedMesh.rotationQuaternion = new BABYLON.Quaternion();
 
           // instancedMesh.position = new BABYLON.Vector3(BABYLON.Scalar.RandomRange(-50, 50), 50, BABYLON.Scalar.RandomRange(-50, 50));
 
@@ -112,8 +121,10 @@ export class NoWorker {
           // instancedMesh.physicsImpostor.physicsBody.setCollisionFlags(1); // CF_STATIC_OBJECT
           // instancedMesh.physicsImpostor.physicsBody.setActivationState(5); // DISABLE_SIMULATION
 
-          this._instancedMeshes.push(instancedMesh);
+          this._instancedMeshes[i] = instancedMesh;
         }
+
+        this._physics.add();
       },
       remove: () => {
         clog('Remove', LogLevel.Debug);
@@ -128,18 +139,18 @@ export class NoWorker {
 
     mesh.setEnabled(false);
 
-    let beforeStepTime = now();
-    this._scene.onBeforeStepObservable.add(() => {
-      const current = now();
-      const betweenStepsDuration = current - beforeStepTime;
-      beforeStepTime = current;
-    });
+    // let beforeStepTime = now();
+    // this._scene.onBeforeStepObservable.add(() => {
+    //   const current = now();
+    //   const betweenStepsDuration = current - beforeStepTime;
+    //   beforeStepTime = current;
+    // });
 
-    this._scene.onAfterStepObservable.add(() => {
-      const current = now();
-      const stepDuration = current - beforeStepTime;
-      this._gui.updatePhysicsStepComputeTime(stepDuration);
-    });
+    // this._scene.onAfterStepObservable.add(() => {
+    //   const current = now();
+    //   const stepDuration = current - beforeStepTime;
+    //   this._gui.updatePhysicsStepComputeTime(stepDuration);
+    // });
   }
 
   private loadAxes(): void {

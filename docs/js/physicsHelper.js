@@ -29,4 +29,6 @@ export var CollisionFilterMask;
     CollisionFilterMask[CollisionFilterMask["Environment"] = 2] = "Environment";
     CollisionFilterMask[CollisionFilterMask["Other"] = 3] = "Other";
 })(CollisionFilterMask || (CollisionFilterMask = {}));
+export const MIN_DELTA_TIME = 1 / 1000;
+export const MAX_DELTA_TIME = 1;
 //# sourceMappingURL=physicsHelper.js.map
