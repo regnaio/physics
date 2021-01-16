@@ -133,6 +133,8 @@ export class NoWorker {
           // instancedMesh.physicsImpostor?.dispose();
           instancedMesh.dispose();
         });
+
+        this._physics.remove();
       },
       physicsStepComputeTime: 0
     };

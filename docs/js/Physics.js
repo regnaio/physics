@@ -1,4 +1,5 @@
 import { GRAVITY, CollisionFilterGroup, CollisionFilterMask, ActivationState, CollisionFlag, MIN_DELTA_TIME, MAX_DELTA_TIME } from './physicsHelper';
+import { RigidBody } from './RigidBody';
 import { now, LogLevel, clog, randomRange } from './utils';
 let tempData;
 let tempResult;
@@ -80,36 +81,58 @@ export class Physics {
         const mass = 0;
         // ground
         const groundShape = new Ammo.btBoxShape(new Ammo.btVector3(25, 0.5, 25));
-        let transform = new Ammo.btTransform();
-        transform.setIdentity();
-        transform.setOrigin(new Ammo.btVector3(0, -0.5, 0));
-        transform.setRotation(new Ammo.btQuaternion(0, 0, 0, 1));
-        let motionState = new Ammo.btDefaultMotionState(transform);
-        let localInertia = new Ammo.btVector3(0, 0, 0);
-        // groundShape.calculateLocalInertia(mass, localInertia);
-        let rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, groundShape, localInertia);
-        let body = new Ammo.btRigidBody(rbInfo);
-        body.setFriction(1);
-        body.setActivationState(ActivationState.DISABLE_DEACTIVATION);
-        body.setCollisionFlags(CollisionFlag.CF_STATIC_OBJECT);
-        this._dynamicsWorld.addRigidBody(body, CollisionFilterGroup.Environment, CollisionFilterMask.Environment);
+        // let transform = new Ammo.btTransform();
+        // transform.setIdentity();
+        // transform.setOrigin(new Ammo.btVector3(0, -0.5, 0));
+        // transform.setRotation(new Ammo.btQuaternion(0, 0, 0, 1));
+        // let motionState = new Ammo.btDefaultMotionState(transform);
+        // let localInertia = new Ammo.btVector3(0, 0, 0);
+        // // groundShape.calculateLocalInertia(mass, localInertia);
+        // let rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, groundShape, localInertia);
+        // let body = new Ammo.btRigidBody(rbInfo);
+        // body.setFriction(1);
+        // body.setActivationState(ActivationState.DISABLE_DEACTIVATION);
+        // body.setCollisionFlags(CollisionFlag.CF_STATIC_OBJECT);
+        const ground = new RigidBody(groundShape, new Ammo.btVector3(0, -0.5, 0), new Ammo.btQuaternion(0, 0, 0, 1), {
+            mass: 0,
+            friction: 1,
+            restitution: 1,
+            activationState: ActivationState.DISABLE_DEACTIVATION,
+            collisionFlag: CollisionFlag.CF_STATIC_OBJECT,
+            collisionFilterGroup: CollisionFilterGroup.Environment,
+            collisionFilterMask: CollisionFilterMask.Environment
+        });
+        ground.add(this._dynamicsWorld);
+        // this._dynamicsWorld.addRigidBody(body, CollisionFilterGroup.Environment, CollisionFilterMask.Environment);
         // slide
         const slideShape = new Ammo.btBoxShape(new Ammo.btVector3(5, 0.5, 10));
-        transform = new Ammo.btTransform();
-        transform.setIdentity();
-        transform.setOrigin(new Ammo.btVector3(-10, 0, 0));
+        // transform = new Ammo.btTransform();
+        // transform.setIdentity();
+        // transform.setOrigin(new Ammo.btVector3(-10, 0, 0));
+        // const rotation = new Ammo.btQuaternion(0, 0, 0, 1);
+        // rotation.setEulerZYX(0, 0, -Math.PI / 6);
+        // transform.setRotation(rotation);
+        // motionState = new Ammo.btDefaultMotionState(transform);
+        // localInertia = new Ammo.btVector3(0, 0, 0);
+        // // slideShape.calculateLocalInertia(mass, localInertia);
+        // rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, slideShape, localInertia);
+        // body = new Ammo.btRigidBody(rbInfo);
+        // body.setFriction(1);
+        // body.setActivationState(ActivationState.DISABLE_DEACTIVATION);
+        // body.setCollisionFlags(CollisionFlag.CF_STATIC_OBJECT);
+        // this._dynamicsWorld.addRigidBody(body, CollisionFilterGroup.Environment, CollisionFilterMask.Environment);
         const rotation = new Ammo.btQuaternion(0, 0, 0, 1);
         rotation.setEulerZYX(0, 0, -Math.PI / 6);
-        transform.setRotation(rotation);
-        motionState = new Ammo.btDefaultMotionState(transform);
-        localInertia = new Ammo.btVector3(0, 0, 0);
-        // slideShape.calculateLocalInertia(mass, localInertia);
-        rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, slideShape, localInertia);
-        body = new Ammo.btRigidBody(rbInfo);
-        body.setFriction(1);
-        body.setActivationState(ActivationState.DISABLE_DEACTIVATION);
-        body.setCollisionFlags(CollisionFlag.CF_STATIC_OBJECT);
-        this._dynamicsWorld.addRigidBody(body, CollisionFilterGroup.Environment, CollisionFilterMask.Environment);
+        const slide = new RigidBody(slideShape, new Ammo.btVector3(-10, 0, 0), rotation, {
+            mass: 0,
+            friction: 1,
+            restitution: 1,
+            activationState: ActivationState.DISABLE_DEACTIVATION,
+            collisionFlag: CollisionFlag.CF_STATIC_OBJECT,
+            collisionFilterGroup: CollisionFilterGroup.Environment,
+            collisionFilterMask: CollisionFilterMask.Environment
+        });
+        slide.add(this._dynamicsWorld);
     }
     add() {
         clog('add()', LogLevel.Debug);
@@ -139,6 +162,7 @@ export class Physics {
         }
         this._didAdd = true;
     }
+    remove() { }
     // https://gafferongames.com/post/fix_your_timestep/
     onRenderUpdate(deltaTime) {
         if (this._dynamicsWorld === undefined) {
