@@ -1,3 +1,5 @@
+import { loadAxes } from './babylonHelper';
+// import { inlineWorker } from './inlineWorker';
 import { GUI } from './GUI';
 import { LogLevel, clog } from './utils';
 export class WithWorker {
@@ -10,8 +12,9 @@ export class WithWorker {
         this._gui = new GUI();
         clog('WithWorker', LogLevel.Info);
         this.setupCamera();
-        this.setupPhysics();
-        this.loadAxes();
+        loadAxes(this._scene);
+        this.setupWorker();
+        // const w = new Worker('../js/worker.js');
         this._engine.runRenderLoop(() => {
             this._scene.render();
         });
@@ -27,46 +30,21 @@ export class WithWorker {
         this._camera.attachControl(this._canvas, false);
         this._camera.setTarget(new BABYLON.Vector3(0, 10, 0));
     }
-    async setupPhysics() {
-        try {
-            if (typeof Ammo === 'function') {
-                await Ammo();
-            }
-        }
-        catch (err) {
-            clog('setupPhysics(): err', LogLevel.Fatal, err);
-        }
+    // https://forum.babylonjs.com/t/running-physics-in-a-webworker/4744/5
+    setupWorker() {
+        // clog(inlineWorker.toString(), LogLevel.Debug);
+        // const blobURL = URL.createObjectURL(new Blob(['(', inlineWorker.toString(), ')();'], {
+        //   type: 'application/javascript'
+        // }));
+        // this._worker = new Worker(blobURL);
+        this._worker = new Worker('../dist/worker.js');
+        this._worker.onmessage = (ev) => {
+            clog('main _worker.onmessage(): ev', LogLevel.Debug, ev);
+        };
+        this._worker.postMessage('hello');
+        // this._worker.postMessage(Physics.toString());
+        // URL.revokeObjectURL(blobURL);
     }
     loadEnvironment() { }
-    loadAxes() {
-        const size = 100;
-        const axisX = BABYLON.Mesh.CreateLines('axisX', [
-            new BABYLON.Vector3(),
-            new BABYLON.Vector3(size, 0, 0),
-            new BABYLON.Vector3(size * 0.95, 0.05 * size, 0),
-            new BABYLON.Vector3(size, 0, 0),
-            new BABYLON.Vector3(size * 0.95, -0.05 * size, 0)
-        ], this._scene);
-        axisX.isPickable = false;
-        axisX.color = new BABYLON.Color3(1, 0, 0);
-        const axisY = BABYLON.Mesh.CreateLines('axisY', [
-            new BABYLON.Vector3(),
-            new BABYLON.Vector3(0, size, 0),
-            new BABYLON.Vector3(-0.05 * size, size * 0.95, 0),
-            new BABYLON.Vector3(0, size, 0),
-            new BABYLON.Vector3(0.05 * size, size * 0.95, 0)
-        ], this._scene);
-        axisY.isPickable = false;
-        axisY.color = new BABYLON.Color3(0, 1, 0);
-        const axisZ = BABYLON.Mesh.CreateLines('axisZ', [
-            new BABYLON.Vector3(),
-            new BABYLON.Vector3(0, 0, size),
-            new BABYLON.Vector3(0, -0.05 * size, size * 0.95),
-            new BABYLON.Vector3(0, 0, size),
-            new BABYLON.Vector3(0, 0.05 * size, size * 0.95)
-        ], this._scene);
-        axisZ.isPickable = false;
-        axisZ.color = new BABYLON.Color3(0, 0, 1);
-    }
 }
 //# sourceMappingURL=WithWorker.js.map

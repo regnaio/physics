@@ -1,6 +1,6 @@
 import { CollisionFilterGroup, CollisionFilterMask, ActivationState, CollisionFlag } from './physicsHelper';
 
-import { clog, LogLevel } from './utils';
+import { LogLevel, clog } from './utils';
 
 export interface RigidBodyOptions {
   mass: number;

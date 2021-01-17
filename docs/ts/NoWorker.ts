@@ -17,7 +17,8 @@ export class NoWorker {
 
   private _gui = new GUI();
 
-  private _physics = new Physics(this._gui);
+  // private _physics = new Physics(this._gui);
+  private _physics = new Physics();
 
   private _instancedMeshes = new Array<BABYLON.InstancedMesh>();
 
@@ -110,7 +111,8 @@ export class NoWorker {
         this._instancedMeshes[i] = instancedMesh;
       }
 
-      this._physics.add();
+      // this._physics.add();
+      this._physics.add(numToAdd);
     };
     this._gui.datData.remove = () => {
       clog('Remove', LogLevel.Debug);

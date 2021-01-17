@@ -10,7 +10,8 @@ export class NoWorker {
         this._camera = new BABYLON.ArcRotateCamera('', 0, Math.PI / 4, 100, new BABYLON.Vector3(), this._scene);
         this._light = new BABYLON.HemisphericLight('', new BABYLON.Vector3(0, 100, 0), this._scene);
         this._gui = new GUI();
-        this._physics = new Physics(this._gui);
+        // private _physics = new Physics(this._gui);
+        this._physics = new Physics();
         this._instancedMeshes = new Array();
         clog('NoWorker', LogLevel.Info);
         this.setupCamera();
@@ -18,7 +19,6 @@ export class NoWorker {
         this.setupGUI();
         loadAxes(this._scene);
         this._physics.onPhysicsUpdate = motionStates => {
-            var _a;
             // const { numToAdd } = this._gui.datData;
             // for (let i = 0; i < numToAdd; i++) {
             for (const [i, motionState] of motionStates.entries()) {
@@ -32,7 +32,7 @@ export class NoWorker {
                     instancedMesh.rotationQuaternion = new BABYLON.Quaternion();
                 }
                 instancedMesh.position.set(position.x, position.y, position.z);
-                (_a = instancedMesh.rotationQuaternion) === null || _a === void 0 ? void 0 : _a.set(rotation.x, rotation.y, rotation.z, rotation.w);
+                instancedMesh.rotationQuaternion?.set(rotation.x, rotation.y, rotation.z, rotation.w);
             }
         };
         this._scene.registerBeforeRender(() => {
@@ -85,7 +85,8 @@ export class NoWorker {
                 instancedMesh.rotationQuaternion = new BABYLON.Quaternion();
                 this._instancedMeshes[i] = instancedMesh;
             }
-            this._physics.add();
+            // this._physics.add();
+            this._physics.add(numToAdd);
         };
         this._gui.datData.remove = () => {
             clog('Remove', LogLevel.Debug);

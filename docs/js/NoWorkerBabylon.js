@@ -35,7 +35,6 @@ export class NoWorkerBabylon {
         this._camera.setTarget(new BABYLON.Vector3(0, 10, 0));
     }
     async setupPhysics() {
-        var _a, _b;
         try {
             if (typeof Ammo === 'function') {
                 await Ammo();
@@ -46,8 +45,8 @@ export class NoWorkerBabylon {
             clog(`_engine.getLockstepMaxSteps(): ${this._engine.getLockstepMaxSteps()}`, LogLevel.Info);
             clog(`_engine.getTimeStep(): ${this._engine.getTimeStep()}`, LogLevel.Info);
             clog(`physEngine.getTimeStep(): ${physEngine.getTimeStep()}`, LogLevel.Info);
-            clog(`_scene.getPhysicsEngine()?.getTimeStep(): ${(_a = this._scene.getPhysicsEngine()) === null || _a === void 0 ? void 0 : _a.getTimeStep()}`, LogLevel.Info);
-            clog(`_scene.getPhysicsEngine()?.getSubTimeStep(): ${(_b = this._scene.getPhysicsEngine()) === null || _b === void 0 ? void 0 : _b.getSubTimeStep()}`, LogLevel.Info);
+            clog(`_scene.getPhysicsEngine()?.getTimeStep(): ${this._scene.getPhysicsEngine()?.getTimeStep()}`, LogLevel.Info);
+            clog(`_scene.getPhysicsEngine()?.getSubTimeStep(): ${this._scene.getPhysicsEngine()?.getSubTimeStep()}`, LogLevel.Info);
             this.loadEnvironment();
             this.setupGUI();
         }
@@ -121,8 +120,7 @@ export class NoWorkerBabylon {
         this._gui.datData.remove = () => {
             clog('Remove', LogLevel.Debug);
             this._instancedMeshes.forEach(instancedMesh => {
-                var _a;
-                (_a = instancedMesh.physicsImpostor) === null || _a === void 0 ? void 0 : _a.dispose();
+                instancedMesh.physicsImpostor?.dispose();
                 instancedMesh.dispose();
             });
         };

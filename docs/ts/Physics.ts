@@ -52,18 +52,25 @@ export class Physics {
 
   private _didAdd = false;
 
-  constructor(private _gui: GUI) {
-    this.init();
+  // constructor(private _gui: GUI) {
+  constructor(wasmPath?: string) {
+    this.init(wasmPath);
   }
 
   set onPhysicsUpdate(onPhysicsUpdate: (motionStates: Array<MotionState>) => void) {
     this._onPhysicsUpdate = onPhysicsUpdate;
   }
 
-  private async init() {
+  private async init(wasmPath?: string) {
     try {
       if (typeof Ammo === 'function') {
-        await Ammo();
+        if (wasmPath !== undefined) {
+          await Ammo({
+            locateFile: () => wasmPath
+          });
+        } else {
+          await Ammo();
+        }
       }
 
       tempData = {
@@ -94,7 +101,8 @@ export class Physics {
 
       this.loadEnvironment();
     } catch (err) {
-      clog('init(): err', LogLevel.Fatal, err);
+      console.log('init(): err', err);
+      // clog('init(): err', LogLevel.Fatal, err);
     }
   }
 
@@ -178,7 +186,7 @@ export class Physics {
     slide.add(this._dynamicsWorld);
   }
 
-  add(): void {
+  add(numToAdd: number): void {
     clog('add()', LogLevel.Debug);
     if (this._dynamicsWorld === undefined) {
       clog('add(): _dynamicsWorld === undefined', LogLevel.Error);
@@ -190,7 +198,7 @@ export class Physics {
     btVector3A.setValue(0.25, 0.5, 0.5);
     const colShape = new Ammo.btBoxShape(btVector3A);
 
-    const { numToAdd } = this._gui.datData;
+    // const { numToAdd } = this._gui.datData;
     this._rigidBodies = new Array<RigidBody>(numToAdd);
     this._motionStates = new Array<MotionState>(numToAdd);
 
@@ -303,7 +311,7 @@ export class Physics {
         this._onPhysicsUpdate([...this._motionStates]);
       }
 
-      this._gui.updatePhysicsStepComputeTime(now() - beforeStepTime);
+      // this._gui.updatePhysicsStepComputeTime(now() - beforeStepTime);
       this._accumulator -= this._fixedTimeStep;
       stepNum++;
     }

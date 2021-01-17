@@ -15,10 +15,20 @@ export enum LogLevel {
 const colors = ['#ffffff', '#00ff00', '#00ffff', '#ffff00', '#ff00ff', '#ff0000', '#ffffff'];
 const maxLogLevel = LogLevel.Fatal;
 const throwLogLevel = LogLevel.Error;
-export const clog = (message: string, logLevel: LogLevel, ...extra: any[]) => {
+export function clog(message: string, logLevel: LogLevel, ...extra: any[]) {
   if (logLevel > maxLogLevel) return;
 
   console.log(`%c ${message}`, `color: ${colors[logLevel]}`, ...extra);
+
+  // TODO: Fix server crash due to client throw
+  if (logLevel >= throwLogLevel) throw message;
+};
+
+const backgroundColor = '#666666';
+export function cblog(message: string, logLevel: LogLevel, ...extra: any[]) {
+  if (logLevel > maxLogLevel) return;
+
+  console.log(`%c ${message}`, `color: ${colors[logLevel]}; background: ${backgroundColor}`, ...extra);
 
   // TODO: Fix server crash due to client throw
   if (logLevel >= throwLogLevel) throw message;

@@ -15,14 +15,25 @@ export var LogLevel;
 const colors = ['#ffffff', '#00ff00', '#00ffff', '#ffff00', '#ff00ff', '#ff0000', '#ffffff'];
 const maxLogLevel = LogLevel.Fatal;
 const throwLogLevel = LogLevel.Error;
-export const clog = (message, logLevel, ...extra) => {
+export function clog(message, logLevel, ...extra) {
     if (logLevel > maxLogLevel)
         return;
     console.log(`%c ${message}`, `color: ${colors[logLevel]}`, ...extra);
     // TODO: Fix server crash due to client throw
     if (logLevel >= throwLogLevel)
         throw message;
-};
+}
+;
+const backgroundColor = '#666666';
+export function cblog(message, logLevel, ...extra) {
+    if (logLevel > maxLogLevel)
+        return;
+    console.log(`%c ${message}`, `color: ${colors[logLevel]}; background: ${backgroundColor}`, ...extra);
+    // TODO: Fix server crash due to client throw
+    if (logLevel >= throwLogLevel)
+        throw message;
+}
+;
 export function randomRange(min, max) {
     return min === max ? min : Math.random() * (max - min) + min;
 }

@@ -4,8 +4,8 @@ import { now, LogLevel, clog, randomRange } from './utils';
 let tempData;
 let tempResult;
 export class Physics {
-    constructor(_gui) {
-        this._gui = _gui;
+    // constructor(private _gui: GUI) {
+    constructor(wasmPath) {
         this._fixedTimeStep = 1 / 60;
         this._accumulator = 0;
         this._maxSteps = 4; // max physics steps per frame render (WARNING: physics can slow down at low frame rates)
@@ -14,15 +14,22 @@ export class Physics {
         this._rigidBodies = new Array();
         this._motionStates = new Array();
         this._didAdd = false;
-        this.init();
+        this.init(wasmPath);
     }
     set onPhysicsUpdate(onPhysicsUpdate) {
         this._onPhysicsUpdate = onPhysicsUpdate;
     }
-    async init() {
+    async init(wasmPath) {
         try {
             if (typeof Ammo === 'function') {
-                await Ammo();
+                if (wasmPath !== undefined) {
+                    await Ammo({
+                        locateFile: () => wasmPath
+                    });
+                }
+                else {
+                    await Ammo();
+                }
             }
             tempData = {
                 btVector3A: new Ammo.btVector3(0, 0, 0),
@@ -48,7 +55,8 @@ export class Physics {
             this.loadEnvironment();
         }
         catch (err) {
-            clog('init(): err', LogLevel.Fatal, err);
+            console.log('init(): err', err);
+            // clog('init(): err', LogLevel.Fatal, err);
         }
     }
     setupCallbacks() {
@@ -114,7 +122,7 @@ export class Physics {
         });
         slide.add(this._dynamicsWorld);
     }
-    add() {
+    add(numToAdd) {
         clog('add()', LogLevel.Debug);
         if (this._dynamicsWorld === undefined) {
             clog('add(): _dynamicsWorld === undefined', LogLevel.Error);
@@ -123,7 +131,7 @@ export class Physics {
         const { btVector3A, btQuaternionA } = tempData;
         btVector3A.setValue(0.25, 0.5, 0.5);
         const colShape = new Ammo.btBoxShape(btVector3A);
-        const { numToAdd } = this._gui.datData;
+        // const { numToAdd } = this._gui.datData;
         this._rigidBodies = new Array(numToAdd);
         this._motionStates = new Array(numToAdd);
         for (let i = 0; i < numToAdd; i++) {
@@ -219,7 +227,7 @@ export class Physics {
                 }
                 this._onPhysicsUpdate([...this._motionStates]);
             }
-            this._gui.updatePhysicsStepComputeTime(now() - beforeStepTime);
+            // this._gui.updatePhysicsStepComputeTime(now() - beforeStepTime);
             this._accumulator -= this._fixedTimeStep;
             stepNum++;
         }

@@ -4,7 +4,7 @@ import { WithWorker } from './WithWorker';
 import { LogLevel, clog } from './utils';
 const parts = window.location.pathname.split('/');
 const route = parts.pop() || parts.pop();
-clog('route', LogLevel.Info, route);
+clog(`route: ${route}`, LogLevel.Info);
 switch (route) {
     case 'noworkerbabylon':
         new NoWorkerBabylon();
