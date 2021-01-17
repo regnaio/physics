@@ -1,5 +1,7 @@
 import { CollisionFilterGroup, CollisionFilterMask, ActivationState, CollisionFlag } from './physicsHelper';
 
+import { clog, LogLevel } from './utils';
+
 export interface RigidBodyOptions {
   mass: number;
   friction?: number;
@@ -17,11 +19,11 @@ export class RigidBody {
   private _rbInfo: Ammo.btRigidBodyConstructionInfo;
   private _rigidBody: Ammo.btRigidBody;
 
+  // position and rotation are temporary btVector3 for initial placement
   constructor(private _colShape: Ammo.btCollisionShape, position: Ammo.btVector3, rotation: Ammo.btQuaternion, private _options: RigidBodyOptions) {
     const { mass, friction, restitution, activationState, collisionFlag } = this._options;
 
     this._transform.setIdentity();
-    // position and rotation are temporary btVector3 for initial placement
     this._transform.setOrigin(position);
     this._transform.setRotation(rotation);
     this._motionState = new Ammo.btDefaultMotionState(this._transform);
@@ -48,6 +50,18 @@ export class RigidBody {
     if (collisionFlag !== undefined) {
       this._rigidBody.setCollisionFlags(collisionFlag);
     }
+  }
+
+  getMotionState(): Ammo.btMotionState {
+    return this._rigidBody.getMotionState();
+  }
+
+  getOrigin(): Ammo.btVector3 {
+    return this._rigidBody.getWorldTransform().getOrigin();
+  }
+  
+  getRotation(): Ammo.btQuaternion {
+    return this._rigidBody.getWorldTransform().getRotation();
   }
 
   add(dynamicsWorld: Ammo.btDiscreteDynamicsWorld): void {

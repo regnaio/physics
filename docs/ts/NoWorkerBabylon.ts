@@ -1,6 +1,8 @@
-import { GRAVITY, CollisionFilterGroup, CollisionFilterMask } from './physicsHelper';
+import { GRAVITY, CollisionFilterGroup, CollisionFilterMask, ActivationState, CollisionFlag } from './physicsHelper';
 
 import { GUI } from './GUI';
+
+import { loadAxes } from './babylonHelper';
 
 import { now, LogLevel, clog } from './utils';
 
@@ -16,12 +18,14 @@ export class NoWorkerBabylon {
 
   private _gui = new GUI();
 
+  private _instancedMeshes = new Array<BABYLON.InstancedMesh>();
+
   constructor() {
     clog('NoWorker', LogLevel.Info);
 
     this.setupCamera();
     this.setupPhysics();
-    this.loadAxes();
+    loadAxes(this._scene);
 
     this._engine.runRenderLoop(() => {
       this._scene.render();
@@ -79,14 +83,15 @@ export class NoWorkerBabylon {
       {
         mass: 0,
         friction: 1,
+        restitution: 0.5,
         // @ts-ignore
         group: CollisionFilterGroup.Environment,
         mask: CollisionFilterMask.Environment
       },
       this._scene
     );
-    ground.physicsImpostor.physicsBody.setCollisionFlags(1); // CF_STATIC_OBJECT
-    ground.physicsImpostor.physicsBody.setActivationState(5); // DISABLE_SIMULATION
+    ground.physicsImpostor.physicsBody.setActivationState(ActivationState.DISABLE_DEACTIVATION);
+    ground.physicsImpostor.physicsBody.setCollisionFlags(CollisionFlag.CF_STATIC_OBJECT);
 
     const slide = BABYLON.MeshBuilder.CreateBox('', { width: 10, height: 1, depth: 20 }, this._scene);
     const slideMaterial = new BABYLON.StandardMaterial('', this._scene);
@@ -103,14 +108,15 @@ export class NoWorkerBabylon {
       {
         mass: 0,
         friction: 1,
+        restitution: 0.5,
         // @ts-ignore
         group: CollisionFilterGroup.Environment,
         mask: CollisionFilterMask.Environment
       },
       this._scene
     );
-    slide.physicsImpostor.physicsBody.setCollisionFlags(1); // CF_STATIC_OBJECT
-    slide.physicsImpostor.physicsBody.setActivationState(5); // DISABLE_SIMULATION
+    slide.physicsImpostor.physicsBody.setActivationState(ActivationState.DISABLE_DEACTIVATION);
+    slide.physicsImpostor.physicsBody.setCollisionFlags(CollisionFlag.CF_STATIC_OBJECT);
   }
 
   private setupGUI(): void {
@@ -119,50 +125,53 @@ export class NoWorkerBabylon {
     material.diffuseColor = new BABYLON.Color3(1, 1, 0);
     mesh.material = material;
 
-    const instancedMeshes = new Array<BABYLON.InstancedMesh>(500);
-    this._gui.datData = {
-      add: () => {
-        clog('Add', LogLevel.Debug);
+    this._gui.datData.add = () => {
+      clog('Add', LogLevel.Debug);
+      this._gui.datData.remove();
 
-        for (let i = 0; i < 500; i++) {
-          const instancedMesh = mesh.createInstance('');
+      const { numToAdd } = this._gui.datData;
+      this._instancedMeshes = new Array<BABYLON.InstancedMesh>(numToAdd);
+      for (let i = 0; i < numToAdd; i++) {
+        const instancedMesh = mesh.createInstance('');
 
-          instancedMesh.position = new BABYLON.Vector3(BABYLON.Scalar.RandomRange(-10, 10), 50, BABYLON.Scalar.RandomRange(-10, 10));
+        instancedMesh.position = new BABYLON.Vector3(BABYLON.Scalar.RandomRange(-10, 10), 50, BABYLON.Scalar.RandomRange(-10, 10));
 
-          instancedMesh.rotationQuaternion = new BABYLON.Vector3(
-            BABYLON.Scalar.RandomRange(-Math.PI, Math.PI),
-            BABYLON.Scalar.RandomRange(-Math.PI, Math.PI),
-            BABYLON.Scalar.RandomRange(-Math.PI, Math.PI)
-          ).toQuaternion();
+        instancedMesh.rotationQuaternion = new BABYLON.Vector3(
+          BABYLON.Scalar.RandomRange(-Math.PI, Math.PI),
+          BABYLON.Scalar.RandomRange(-Math.PI, Math.PI),
+          BABYLON.Scalar.RandomRange(-Math.PI, Math.PI)
+        ).toQuaternion();
 
-          instancedMesh.physicsImpostor = new BABYLON.PhysicsImpostor(
-            instancedMesh,
-            BABYLON.PhysicsImpostor.BoxImpostor,
-            {
-              mass: 1,
-              friction: 1,
-              // @ts-ignore
-              group: CollisionFilterGroup.Other,
-              mask: CollisionFilterMask.Other
-            },
-            this._scene
-          );
-          // instancedMesh.physicsImpostor.physicsBody.setCollisionFlags(1); // CF_STATIC_OBJECT
-          // instancedMesh.physicsImpostor.physicsBody.setActivationState(5); // DISABLE_SIMULATION
+        instancedMesh.physicsImpostor = new BABYLON.PhysicsImpostor(
+          instancedMesh,
+          BABYLON.PhysicsImpostor.BoxImpostor,
+          {
+            mass: 1,
+            friction: 1,
+            restitution: 0.5,
+            // @ts-ignore
+            group: CollisionFilterGroup.Other,
+            mask: CollisionFilterMask.Other
+          },
+          this._scene
+        );
+        instancedMesh.physicsImpostor.physicsBody.setActivationState(ActivationState.DISABLE_DEACTIVATION);
 
-          instancedMeshes.push(instancedMesh);
-        }
-      },
-      remove: () => {
-        clog('Remove', LogLevel.Debug);
-
-        instancedMeshes.forEach(instancedMesh => {
-          instancedMesh.physicsImpostor?.dispose();
-          instancedMesh.dispose();
-        });
-      },
-      physicsStepComputeTime: 0
+        this._instancedMeshes[i] = instancedMesh;
+      }
     };
+    this._gui.datData.remove = () => {
+      clog('Remove', LogLevel.Debug);
+
+      this._instancedMeshes.forEach(instancedMesh => {
+        instancedMesh.physicsImpostor?.dispose();
+        instancedMesh.dispose();
+      });
+    };
+    this._gui.datData.numToAdd = 500;
+    // this._gui.datData.numTotal = 0;
+    this._gui.datData.physicsStepComputeTime = 0;
+    this._gui.init();
 
     mesh.setEnabled(false);
 
@@ -178,51 +187,5 @@ export class NoWorkerBabylon {
       const stepDuration = current - beforeStepTime;
       this._gui.updatePhysicsStepComputeTime(stepDuration);
     });
-  }
-
-  private loadAxes(): void {
-    const size = 100;
-
-    const axisX = BABYLON.Mesh.CreateLines(
-      'axisX',
-      [
-        new BABYLON.Vector3(),
-        new BABYLON.Vector3(size, 0, 0),
-        new BABYLON.Vector3(size * 0.95, 0.05 * size, 0),
-        new BABYLON.Vector3(size, 0, 0),
-        new BABYLON.Vector3(size * 0.95, -0.05 * size, 0)
-      ],
-      this._scene
-    );
-    axisX.isPickable = false;
-    axisX.color = new BABYLON.Color3(1, 0, 0);
-
-    const axisY = BABYLON.Mesh.CreateLines(
-      'axisY',
-      [
-        new BABYLON.Vector3(),
-        new BABYLON.Vector3(0, size, 0),
-        new BABYLON.Vector3(-0.05 * size, size * 0.95, 0),
-        new BABYLON.Vector3(0, size, 0),
-        new BABYLON.Vector3(0.05 * size, size * 0.95, 0)
-      ],
-      this._scene
-    );
-    axisY.isPickable = false;
-    axisY.color = new BABYLON.Color3(0, 1, 0);
-
-    const axisZ = BABYLON.Mesh.CreateLines(
-      'axisZ',
-      [
-        new BABYLON.Vector3(),
-        new BABYLON.Vector3(0, 0, size),
-        new BABYLON.Vector3(0, -0.05 * size, size * 0.95),
-        new BABYLON.Vector3(0, 0, size),
-        new BABYLON.Vector3(0, 0.05 * size, size * 0.95)
-      ],
-      this._scene
-    );
-    axisZ.isPickable = false;
-    axisZ.color = new BABYLON.Color3(0, 0, 1);
   }
 }

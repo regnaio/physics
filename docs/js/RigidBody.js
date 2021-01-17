@@ -1,4 +1,5 @@
 export class RigidBody {
+    // position and rotation are temporary btVector3 for initial placement
     constructor(_colShape, position, rotation, _options) {
         this._colShape = _colShape;
         this._options = _options;
@@ -6,7 +7,6 @@ export class RigidBody {
         this._localInertia = new Ammo.btVector3(0, 0, 0);
         const { mass, friction, restitution, activationState, collisionFlag } = this._options;
         this._transform.setIdentity();
-        // position and rotation are temporary btVector3 for initial placement
         this._transform.setOrigin(position);
         this._transform.setRotation(rotation);
         this._motionState = new Ammo.btDefaultMotionState(this._transform);
@@ -27,6 +27,15 @@ export class RigidBody {
         if (collisionFlag !== undefined) {
             this._rigidBody.setCollisionFlags(collisionFlag);
         }
+    }
+    getMotionState() {
+        return this._rigidBody.getMotionState();
+    }
+    getOrigin() {
+        return this._rigidBody.getWorldTransform().getOrigin();
+    }
+    getRotation() {
+        return this._rigidBody.getWorldTransform().getRotation();
     }
     add(dynamicsWorld) {
         const { collisionFilterGroup, collisionFilterMask } = this._options;
