@@ -6,12 +6,11 @@ const { origin, pathname } = self.location;
 cblog(`worker: origin: ${origin}`, LogLevel.Info, LogCategory.Worker);
 const parts = pathname.split('dist');
 cblog('worker: parts:', LogLevel.Info, LogCategory.Worker, parts);
-// const index = parts.indexOf('dist');
 const extra = parts[0];
-if (extra[extra.length - 1] === '/') {
-    extra.slice(0, -1);
-}
-const physics = new Physics(`${origin}/${extra}/lib/ammo/ammo.wasm.wasm`);
+cblog(`worker: extra: ${extra}`, LogLevel.Info, LogCategory.Worker);
+const wasmPath = new URL('/lib/ammo/ammo.wasm.wasm', new URL(extra, origin)).href;
+cblog(`worker: wasmPath: ${wasmPath}`, LogLevel.Info, LogCategory.Worker);
+const physics = new Physics(wasmPath);
 cblog('worker: physics:', LogLevel.Info, LogCategory.Worker, physics);
 self.onmessage = (ev) => {
     cblog('worker: self.onmessage(): ev:', LogLevel.Debug, LogCategory.Worker, ev);
