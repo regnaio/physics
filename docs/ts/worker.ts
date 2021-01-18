@@ -13,7 +13,9 @@ const parts = pathname.split('dist');
 cblog('worker: parts:', LogLevel.Info, LogCategory.Worker, parts);
 
 const extra = parts[0];
+// const extra = '/physics/';
 cblog(`worker: extra: ${extra}`, LogLevel.Info, LogCategory.Worker);
+console.log('DEFINITELY NEW');
 
 const wasmPath = new URL(`${extra}/lib/ammo/ammo.wasm.wasm`, origin).href;
 cblog(`worker: wasmPath: ${wasmPath}`, LogLevel.Info, LogCategory.Worker);
