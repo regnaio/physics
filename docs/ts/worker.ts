@@ -4,16 +4,25 @@ import { LogLevel, LogCategory, cblog } from './utils';
 
 importScripts('../lib/ammo/ammo.wasm.js');
 
-cblog(`worker self.location`, LogLevel.Info, LogCategory.Worker, self.location);
+cblog('worker: self.location:', LogLevel.Info, LogCategory.Worker, self.location);
 
-const { origin } = self.location;
-cblog(`worker origin: ${origin}`, LogLevel.Info, LogCategory.Worker);
+const { origin, pathname } = self.location;
+cblog(`worker: origin: ${origin}`, LogLevel.Info, LogCategory.Worker);
 
-const physics = new Physics(`${origin}/lib/ammo/ammo.wasm.wasm`);
-cblog('physics', LogLevel.Info, LogCategory.Worker, physics);
+const parts = pathname.split('dist');
+cblog('worker: parts:', LogLevel.Info, LogCategory.Worker, parts);
+// const index = parts.indexOf('dist');
+
+const extra = parts[0];
+if (extra[extra.length - 1] === '/') {
+  extra.slice(0, -1);
+}
+
+const physics = new Physics(`${origin}/${extra}/lib/ammo/ammo.wasm.wasm`);
+cblog('worker: physics:', LogLevel.Info, LogCategory.Worker, physics);
 
 self.onmessage = (ev: MessageEvent<any>) => {
-  cblog('worker self.onmessage(): ev', LogLevel.Debug, LogCategory.Worker, ev);
+  cblog('worker: self.onmessage(): ev:', LogLevel.Debug, LogCategory.Worker, ev);
 };
 
 self.postMessage('hi');
