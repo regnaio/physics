@@ -15,7 +15,7 @@ cblog('worker: parts:', LogLevel.Info, LogCategory.Worker, parts);
 const extra = parts[0];
 cblog(`worker: extra: ${extra}`, LogLevel.Info, LogCategory.Worker);
 
-const wasmPath = new URL('/lib/ammo/ammo.wasm.wasm', new URL(extra, origin)).href;
+const wasmPath = new URL(`${extra}/lib/ammo/ammo.wasm.wasm`, origin).href;
 cblog(`worker: wasmPath: ${wasmPath}`, LogLevel.Info, LogCategory.Worker);
 
 const physics = new Physics(wasmPath);
