@@ -20,20 +20,22 @@ export function clog(message: string, logLevel: LogLevel, ...extra: any[]) {
 
   console.log(`%c ${message}`, `color: ${colors[logLevel]}`, ...extra);
 
-  // TODO: Fix server crash due to client throw
   if (logLevel >= throwLogLevel) throw message;
 };
 
-const backgroundColor = '#666666';
-export function cblog(message: string, logLevel: LogLevel, ...extra: any[]) {
+export enum LogCategory {
+  Main = 0,
+  Worker
+}
+const backgroundColors = ['#660000', '#000066'];
+export function cblog(message: string, logLevel: LogLevel, logCategory: LogCategory, ...extra: any[]) {
   if (logLevel > maxLogLevel) return;
 
-  console.log(`%c ${message}`, `color: ${colors[logLevel]}; background: ${backgroundColor}`, ...extra);
+  console.log(`%c ${message}`, `color: ${colors[logLevel]}; background: ${backgroundColors[logCategory]}`, ...extra);
 
-  // TODO: Fix server crash due to client throw
   if (logLevel >= throwLogLevel) throw message;
 };
 
 export function randomRange(min: number, max: number): number {
-  return min === max ? min : Math.random() * (max - min) + min;
+  return Math.random() * (max - min) + min;
 }

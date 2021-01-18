@@ -4,11 +4,9 @@ import { Physics } from './Physics';
 
 import { loadAxes } from './babylonHelper';
 
-// import { inlineWorker } from './inlineWorker';
-
 import { GUI } from './GUI';
 
-import { now, LogLevel, clog } from './utils';
+import { LogLevel, LogCategory, clog, cblog } from './utils';
 
 export class WithWorker {
   private _canvas = document.getElementById('renderCanvas') as HTMLCanvasElement;
@@ -29,8 +27,6 @@ export class WithWorker {
 
     this.setupWorker();
 
-    // const w = new Worker('../js/worker.js');
-
     this._engine.runRenderLoop(() => {
       this._scene.render();
     });
@@ -49,24 +45,14 @@ export class WithWorker {
     this._camera.setTarget(new BABYLON.Vector3(0, 10, 0));
   }
 
-  // https://forum.babylonjs.com/t/running-physics-in-a-webworker/4744/5
   private setupWorker(): void {
-    // clog(inlineWorker.toString(), LogLevel.Debug);
-    // const blobURL = URL.createObjectURL(new Blob(['(', inlineWorker.toString(), ')();'], {
-    //   type: 'application/javascript'
-    // }));
-
-    // this._worker = new Worker(blobURL);
     this._worker = new Worker('../dist/worker.js');
 
     this._worker.onmessage = (ev: MessageEvent<any>) => {
-      clog('main _worker.onmessage(): ev', LogLevel.Debug, ev);
+      cblog('main _worker.onmessage(): ev', LogLevel.Debug, LogCategory.Main, ev);
     };
     
     this._worker.postMessage('hello');
-    // this._worker.postMessage(Physics.toString());
-
-    // URL.revokeObjectURL(blobURL);
   }
 
   private loadEnvironment(): void {}
