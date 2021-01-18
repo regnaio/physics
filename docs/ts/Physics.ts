@@ -1,4 +1,4 @@
-import { GRAVITY, CollisionFilterGroup, CollisionFilterMask, ActivationState, CollisionFlag, MIN_DELTA_TIME, MAX_DELTA_TIME } from './physicsHelper';
+import { GRAVITY, CollisionFilterGroup, CollisionFilterMask, ActivationState, CollisionFlag, MIN_DELTA_TIME, MAX_DELTA_TIME, MotionState } from './physicsHelper';
 
 import { RigidBody } from './RigidBody';
 
@@ -20,20 +20,6 @@ interface TempResult {
   closestRayResultCallback: Ammo.ClosestRayResultCallback;
 }
 
-interface MotionState {
-  position: {
-    x: number;
-    y: number;
-    z: number;
-  };
-  rotation: {
-    x: number;
-    y: number;
-    z: number;
-    w: number;
-  };
-}
-
 let tempData: TempData;
 let tempResult: TempResult;
 
@@ -43,7 +29,7 @@ export class Physics {
   private _fixedTimeStep = 1 / 60;
   private _accumulator = 0;
   private _maxSteps = 4; // max physics steps per frame render (WARNING: physics can slow down at low frame rates)
-  private _maxSubSteps = 5; // max physics steps per stepSimulation() call
+  private _maxSubSteps = 0; // max physics steps per stepSimulation() call
 
   private _onPhysicsUpdate = (motionStates: Array<MotionState>) => {};
 

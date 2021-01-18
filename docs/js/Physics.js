@@ -9,7 +9,7 @@ export class Physics {
         this._fixedTimeStep = 1 / 60;
         this._accumulator = 0;
         this._maxSteps = 4; // max physics steps per frame render (WARNING: physics can slow down at low frame rates)
-        this._maxSubSteps = 5; // max physics steps per stepSimulation() call
+        this._maxSubSteps = 0; // max physics steps per stepSimulation() call
         this._onPhysicsUpdate = (motionStates) => { };
         this._rigidBodies = new Array();
         this._motionStates = new Array();

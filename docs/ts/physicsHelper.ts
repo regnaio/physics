@@ -33,3 +33,17 @@ export enum CollisionFilterMask {
   Environment = CollisionFilterGroup.Other,
   Other = CollisionFilterGroup.Environment | CollisionFilterGroup.Other
 }
+
+export interface MotionState {
+  position: {
+    x: number;
+    y: number;
+    z: number;
+  };
+  rotation: {
+    x: number;
+    y: number;
+    z: number;
+    w: number;
+  };
+}

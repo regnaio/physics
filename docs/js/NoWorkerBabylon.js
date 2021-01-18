@@ -125,7 +125,6 @@ export class NoWorkerBabylon {
             });
         };
         this._gui.datData.numToAdd = 500;
-        // this._gui.datData.numTotal = 0;
         this._gui.datData.physicsStepComputeTime = 0;
         this._gui.init();
         mesh.setEnabled(false);

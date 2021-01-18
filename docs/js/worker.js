@@ -1,4 +1,5 @@
 import { Physics } from './Physics';
+import { MessageType } from './workerHelper';
 import { LogLevel, LogCategory, cblog } from './utils';
 importScripts('../lib/ammo/ammo.wasm.js');
 // cblog('worker: self.location:', LogLevel.Info, LogCategory.Worker, self.location);
@@ -16,6 +17,39 @@ const physics = new Physics();
 cblog('worker: physics:', LogLevel.Info, LogCategory.Worker, physics);
 self.onmessage = (ev) => {
     cblog('worker: self.onmessage(): ev:', LogLevel.Debug, LogCategory.Worker, ev);
+    const message = ev.data;
+    switch (message.type) {
+        case MessageType.Render:
+            physics.onRenderUpdate(message.data);
+            break;
+        case MessageType.Step:
+            break;
+        case MessageType.Add:
+            physics.add(message.data);
+            break;
+        case MessageType.Remove:
+            physics.remove();
+            break;
+    }
 };
 self.postMessage('hi');
+physics.onPhysicsUpdate = motionStates => {
+    // for (const [i, motionState] of motionStates.entries()) {
+    //   if (motionState === undefined) {
+    //     break;
+    //   }
+    //   const { position, rotation } = motionState;
+    //   const instancedMesh = this._instancedMeshes[i];
+    //   if (instancedMesh.rotationQuaternion === undefined) {
+    //     instancedMesh.rotationQuaternion = new BABYLON.Quaternion();
+    //   }
+    //   instancedMesh.position.set(position.x, position.y, position.z);
+    //   instancedMesh.rotationQuaternion?.set(rotation.x, rotation.y, rotation.z, rotation.w);
+    // }
+    const message = {
+        type: MessageType.Step,
+        data: motionStates
+    };
+    self.postMessage(message);
+};
 //# sourceMappingURL=worker.js.map

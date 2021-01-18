@@ -24,7 +24,9 @@ export class NoWorkerBabylon {
     clog('NoWorker', LogLevel.Info);
 
     this.setupCamera();
+
     this.setupPhysics();
+    
     loadAxes(this._scene);
 
     this._engine.runRenderLoop(() => {
@@ -169,7 +171,6 @@ export class NoWorkerBabylon {
       });
     };
     this._gui.datData.numToAdd = 500;
-    // this._gui.datData.numTotal = 0;
     this._gui.datData.physicsStepComputeTime = 0;
     this._gui.init();
 

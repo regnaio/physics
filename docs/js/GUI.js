@@ -12,7 +12,6 @@ export class GUI {
             add: () => { },
             remove: () => { },
             numToAdd: 0,
-            // numTotal: 0,
             physicsStepComputeTime: 0
         };
         this._shouldUpdatePhysicsStepComputeTime = false;
@@ -33,20 +32,12 @@ export class GUI {
     get datData() {
         return this._datData;
     }
-    // updateDatData(add?: () => void, remove?: () => void, numToAdd?: number, numTotal?: number, physicsStepComputeTime?: number): void {
-    //   this._datData.add = add ?? this._datData.add;
-    //   this._datData.remove = remove ?? this._datData.remove;
-    //   this._datData.numToAdd = numToAdd ?? this._datData.numToAdd;
-    //   this._datData.numTotal = numTotal ?? this._datData.numTotal;
-    //   this._datData.physicsStepComputeTime = physicsStepComputeTime ?? this._datData.physicsStepComputeTime;
-    // }
     init() {
         const folder = this._datGUI.addFolder('Folder');
         folder.open();
         folder.add(this._datData, 'add').name('Click to add');
         folder.add(this._datData, 'remove').name('Click to remove all');
         folder.add(this._datData, 'numToAdd', 0, 1000, 100).name('# to add').step(1).listen();
-        // folder.add(this._datData, 'numTotal').name('# total').step(1).listen();
         folder.add(this._datData, 'physicsStepComputeTime').name('Physics').step(1e-2).listen();
     }
     update() {

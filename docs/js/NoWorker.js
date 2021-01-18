@@ -17,7 +17,6 @@ export class NoWorker {
         this.setupCamera();
         this.loadEnvironment();
         this.setupGUI();
-        loadAxes(this._scene);
         this._physics.onPhysicsUpdate = motionStates => {
             // const { numToAdd } = this._gui.datData;
             // for (let i = 0; i < numToAdd; i++) {
@@ -35,6 +34,7 @@ export class NoWorker {
                 instancedMesh.rotationQuaternion?.set(rotation.x, rotation.y, rotation.z, rotation.w);
             }
         };
+        loadAxes(this._scene);
         this._scene.registerBeforeRender(() => {
             this._physics.onRenderUpdate(this._engine.getDeltaTime() / 1000);
         });
@@ -85,7 +85,6 @@ export class NoWorker {
                 instancedMesh.rotationQuaternion = new BABYLON.Quaternion();
                 this._instancedMeshes[i] = instancedMesh;
             }
-            // this._physics.add();
             this._physics.add(numToAdd);
         };
         this._gui.datData.remove = () => {
@@ -96,7 +95,6 @@ export class NoWorker {
             this._physics.remove();
         };
         this._gui.datData.numToAdd = 500;
-        // this._gui.datData.numTotal = 0;
         this._gui.datData.physicsStepComputeTime = 0;
         this._gui.init();
         mesh.setEnabled(false);
