@@ -20,13 +20,12 @@ export class WithWorker {
         loadAxes(this._scene);
         let messageNum = 0;
         this._scene.registerBeforeRender(() => {
-            // this._physics.onRenderUpdate(this._engine.getDeltaTime() / 1000);
+            cblog(`messageNum: ${messageNum}`, LogLevel.Debug, LogCategory.Main);
             const message = {
                 type: MessageType.Render,
                 data: this._engine.getDeltaTime() / 1000
             };
-            this._worker.postMessage(message);
-            cblog(`messageNum: ${messageNum}`, LogLevel.Debug, LogCategory.Main);
+            this._worker.postMessage(JSON.stringify(message));
             messageNum++;
         });
         this._engine.runRenderLoop(() => {
@@ -50,7 +49,7 @@ export class WithWorker {
         this._worker.onmessage = (ev) => {
             // cblog('main _worker.onmessage(): ev', LogLevel.Debug, LogCategory.Main, ev);
             // cblog(`messageNum: ${messageNum}`, LogLevel.Debug, LogCategory.Main);
-            const message = ev.data;
+            const message = JSON.parse(ev.data);
             switch (message.type) {
                 case MessageType.Render:
                     break;
@@ -65,7 +64,6 @@ export class WithWorker {
             }
             // messageNum++;
         };
-        // this._worker.postMessage('hello');
     }
     loadEnvironment() {
         const ground = BABYLON.MeshBuilder.CreateBox('', { width: 50, height: 1, depth: 50 }, this._scene);
@@ -103,7 +101,7 @@ export class WithWorker {
                 type: MessageType.Add,
                 data: numToAdd
             };
-            this._worker.postMessage(message);
+            this._worker.postMessage(JSON.stringify(message));
         };
         this._gui.datData.remove = () => {
             clog('Remove', LogLevel.Debug);
@@ -115,7 +113,7 @@ export class WithWorker {
                 type: MessageType.Remove,
                 data: undefined
             };
-            this._worker.postMessage(message);
+            this._worker.postMessage(JSON.stringify(message));
         };
         this._gui.datData.numToAdd = 500;
         this._gui.datData.physicsStepComputeTime = 0;

@@ -19,7 +19,7 @@ let messageNum = 0;
 self.onmessage = (ev) => {
     // cblog('worker: self.onmessage(): ev:', LogLevel.Debug, LogCategory.Worker, ev);
     cblog(`messageNum: ${messageNum}`, LogLevel.Debug, LogCategory.Worker);
-    const message = ev.data;
+    const message = JSON.parse(ev.data);
     switch (message.type) {
         case MessageType.Render:
             physics.onRenderUpdate(message.data);
@@ -36,7 +36,6 @@ self.onmessage = (ev) => {
     }
     messageNum++;
 };
-// self.postMessage('hi');
 physics.onPhysicsUpdate = (motionStates, physicsStepComputeTime) => {
     const message = {
         type: MessageType.Step,
@@ -45,6 +44,6 @@ physics.onPhysicsUpdate = (motionStates, physicsStepComputeTime) => {
             physicsStepComputeTime
         }
     };
-    self.postMessage(message);
+    self.postMessage(JSON.stringify(message));
 };
 //# sourceMappingURL=worker.js.map

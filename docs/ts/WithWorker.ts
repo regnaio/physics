@@ -36,14 +36,13 @@ export class WithWorker {
 
     let messageNum = 0;
     this._scene.registerBeforeRender(() => {
-      // this._physics.onRenderUpdate(this._engine.getDeltaTime() / 1000);
+      cblog(`messageNum: ${messageNum}`, LogLevel.Debug, LogCategory.Main);
 
       const message: Message = {
         type: MessageType.Render,
         data: this._engine.getDeltaTime() / 1000
       };
-      this._worker.postMessage(message);
-      cblog(`messageNum: ${messageNum}`, LogLevel.Debug, LogCategory.Main);
+      this._worker.postMessage(JSON.stringify(message));
       messageNum++;
     });
 
@@ -72,7 +71,7 @@ export class WithWorker {
       // cblog('main _worker.onmessage(): ev', LogLevel.Debug, LogCategory.Main, ev);
       // cblog(`messageNum: ${messageNum}`, LogLevel.Debug, LogCategory.Main);
 
-      const message = ev.data as Message;
+      const message = JSON.parse(ev.data) as Message;
       switch (message.type) {
         case MessageType.Render:
           break;
@@ -88,8 +87,6 @@ export class WithWorker {
 
       // messageNum++;
     };
-
-    // this._worker.postMessage('hello');
   }
 
   private loadEnvironment(): void {
@@ -134,7 +131,7 @@ export class WithWorker {
         type: MessageType.Add,
         data: numToAdd
       };
-      this._worker.postMessage(message);
+      this._worker.postMessage(JSON.stringify(message));
     };
     this._gui.datData.remove = () => {
       clog('Remove', LogLevel.Debug);
@@ -148,7 +145,7 @@ export class WithWorker {
         type: MessageType.Remove,
         data: undefined
       };
-      this._worker.postMessage(message);
+      this._worker.postMessage(JSON.stringify(message));
     };
     this._gui.datData.numToAdd = 500;
     this._gui.datData.physicsStepComputeTime = 0;
