@@ -1,6 +1,3 @@
-export function now() {
-    return window.performance ? performance.now() : Date.now();
-}
 // https://www.ibm.com/support/knowledgecenter/en/SSEP7J_10.2.2/com.ibm.swg.ba.cognos.ug_rtm_wb.10.2.2.doc/c_n30e74.html
 export var LogLevel;
 (function (LogLevel) {
@@ -37,6 +34,9 @@ export function cblog(message, logLevel, logCategory, ...extra) {
         throw message;
 }
 ;
+export function now() {
+    return window.performance ? performance.now() : Date.now();
+}
 export function randomRange(min, max) {
     return Math.random() * (max - min) + min;
 }

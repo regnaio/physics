@@ -1,7 +1,7 @@
 import { GRAVITY, CollisionFilterGroup, CollisionFilterMask, ActivationState, CollisionFlag } from './physicsHelper';
 import { GUI } from './GUI';
 import { loadAxes } from './babylonHelper';
-import { now, LogLevel, clog } from './utils';
+import { LogLevel, clog, now } from './utils';
 export class NoWorkerBabylon {
     constructor() {
         this._canvas = document.getElementById('renderCanvas');

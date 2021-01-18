@@ -1,5 +1,5 @@
-import { loadAxes } from './babylonHelper';
 import { GUI } from './GUI';
+import { loadAxes } from './babylonHelper';
 import { LogLevel, LogCategory, clog, cblog } from './utils';
 export class WithWorker {
     constructor() {

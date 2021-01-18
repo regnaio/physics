@@ -1,5 +1,3 @@
-import { GRAVITY, CollisionFilterGroup, CollisionFilterMask } from './physicsHelper';
-
 import { Physics } from './Physics';
 
 import { GUI } from './GUI';

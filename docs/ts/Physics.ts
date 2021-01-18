@@ -4,7 +4,7 @@ import { RigidBody } from './RigidBody';
 
 import { GUI } from './GUI';
 
-import { now, LogLevel, clog, randomRange } from './utils';
+import { LogLevel, clog, now, randomRange } from './utils';
 
 interface TempData {
   btVector3A: Ammo.btVector3;

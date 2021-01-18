@@ -4,7 +4,7 @@ import { GUI } from './GUI';
 
 import { loadAxes } from './babylonHelper';
 
-import { now, LogLevel, clog } from './utils';
+import { LogLevel, clog, now } from './utils';
 
 export class NoWorkerBabylon {
   private _canvas = document.getElementById('renderCanvas') as HTMLCanvasElement;

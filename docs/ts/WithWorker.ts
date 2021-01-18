@@ -1,10 +1,8 @@
-import { GRAVITY, CollisionFilterGroup, CollisionFilterMask } from './physicsHelper';
-
 import { Physics } from './Physics';
 
-import { loadAxes } from './babylonHelper';
-
 import { GUI } from './GUI';
+
+import { loadAxes } from './babylonHelper';
 
 import { LogLevel, LogCategory, clog, cblog } from './utils';
 

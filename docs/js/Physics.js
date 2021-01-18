@@ -1,6 +1,6 @@
 import { GRAVITY, CollisionFilterGroup, CollisionFilterMask, ActivationState, CollisionFlag, MIN_DELTA_TIME, MAX_DELTA_TIME } from './physicsHelper';
 import { RigidBody } from './RigidBody';
-import { now, LogLevel, clog, randomRange } from './utils';
+import { LogLevel, clog, now, randomRange } from './utils';
 let tempData;
 let tempResult;
 export class Physics {
