@@ -25,8 +25,10 @@ importScripts('../lib/ammo/ammo.wasm.js');
 const physics = new Physics();
 cblog('worker: physics:', LogLevel.Info, LogCategory.Worker, physics);
 
+let messageNum = 0;
 self.onmessage = (ev: MessageEvent<any>) => {
-  cblog('worker: self.onmessage(): ev:', LogLevel.Debug, LogCategory.Worker, ev);
+  // cblog('worker: self.onmessage(): ev:', LogLevel.Debug, LogCategory.Worker, ev);
+  cblog(`messageNum: ${messageNum}`, LogLevel.Debug, LogCategory.Worker);
 
   const message = ev.data as Message;
   switch (message.type) {
@@ -37,35 +39,25 @@ self.onmessage = (ev: MessageEvent<any>) => {
       break;
     case MessageType.Add:
       physics.add(message.data);
+      cblog('WORKER: MessageType.Add', LogLevel.Info, LogCategory.Worker);
       break;
     case MessageType.Remove:
       physics.remove();
       break;
   }
+
+  messageNum++;
 };
 
-self.postMessage('hi');
+// self.postMessage('hi');
 
-physics.onPhysicsUpdate = motionStates => {
-  // for (const [i, motionState] of motionStates.entries()) {
-  //   if (motionState === undefined) {
-  //     break;
-  //   }
-
-  //   const { position, rotation } = motionState;
-  //   const instancedMesh = this._instancedMeshes[i];
-
-  //   if (instancedMesh.rotationQuaternion === undefined) {
-  //     instancedMesh.rotationQuaternion = new BABYLON.Quaternion();
-  //   }
-
-  //   instancedMesh.position.set(position.x, position.y, position.z);
-  //   instancedMesh.rotationQuaternion?.set(rotation.x, rotation.y, rotation.z, rotation.w);
-  // }
-
+physics.onPhysicsUpdate = (motionStates, physicsStepComputeTime) => {
   const message: Message = {
     type: MessageType.Step,
-    data: motionStates
+    data: {
+      motionStates,
+      physicsStepComputeTime
+    }
   }
   self.postMessage(message);
 };

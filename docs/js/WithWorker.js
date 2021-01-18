@@ -18,6 +18,7 @@ export class WithWorker {
         this.setupGUI();
         this.loadEnvironment();
         loadAxes(this._scene);
+        let messageNum = 0;
         this._scene.registerBeforeRender(() => {
             // this._physics.onRenderUpdate(this._engine.getDeltaTime() / 1000);
             const message = {
@@ -25,6 +26,8 @@ export class WithWorker {
                 data: this._engine.getDeltaTime() / 1000
             };
             this._worker.postMessage(message);
+            cblog(`messageNum: ${messageNum}`, LogLevel.Debug, LogCategory.Main);
+            messageNum++;
         });
         this._engine.runRenderLoop(() => {
             this._scene.render();
@@ -43,22 +46,26 @@ export class WithWorker {
         this._camera.setTarget(new BABYLON.Vector3(0, 10, 0));
     }
     setupWorker() {
+        // let messageNum = 0;
         this._worker.onmessage = (ev) => {
-            cblog('main _worker.onmessage(): ev', LogLevel.Debug, LogCategory.Main, ev);
+            // cblog('main _worker.onmessage(): ev', LogLevel.Debug, LogCategory.Main, ev);
+            // cblog(`messageNum: ${messageNum}`, LogLevel.Debug, LogCategory.Main);
             const message = ev.data;
             switch (message.type) {
                 case MessageType.Render:
                     break;
                 case MessageType.Step:
-                    this.onPhysicsUpdate(message.data);
+                    const { motionStates, physicsStepComputeTime } = message.data;
+                    this.onPhysicsUpdate(motionStates, physicsStepComputeTime);
                     break;
                 case MessageType.Add:
                     break;
                 case MessageType.Remove:
                     break;
             }
+            // messageNum++;
         };
-        this._worker.postMessage('hello');
+        // this._worker.postMessage('hello');
     }
     loadEnvironment() {
         const ground = BABYLON.MeshBuilder.CreateBox('', { width: 50, height: 1, depth: 50 }, this._scene);
@@ -115,7 +122,7 @@ export class WithWorker {
         this._gui.init();
         mesh.setEnabled(false);
     }
-    onPhysicsUpdate(motionStates) {
+    onPhysicsUpdate(motionStates, physicsStepComputeTime) {
         for (const [i, motionState] of motionStates.entries()) {
             if (motionState === undefined) {
                 break;
@@ -128,6 +135,7 @@ export class WithWorker {
             instancedMesh.position.set(position.x, position.y, position.z);
             instancedMesh.rotationQuaternion?.set(rotation.x, rotation.y, rotation.z, rotation.w);
         }
+        this._gui.updatePhysicsStepComputeTime(physicsStepComputeTime);
     }
 }
 //# sourceMappingURL=WithWorker.js.map

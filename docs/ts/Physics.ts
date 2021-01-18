@@ -1,4 +1,13 @@
-import { GRAVITY, CollisionFilterGroup, CollisionFilterMask, ActivationState, CollisionFlag, MIN_DELTA_TIME, MAX_DELTA_TIME, MotionState } from './physicsHelper';
+import {
+  GRAVITY,
+  CollisionFilterGroup,
+  CollisionFilterMask,
+  ActivationState,
+  CollisionFlag,
+  MIN_DELTA_TIME,
+  MAX_DELTA_TIME,
+  MotionState
+} from './physicsHelper';
 
 import { RigidBody } from './RigidBody';
 
@@ -31,7 +40,7 @@ export class Physics {
   private _maxSteps = 4; // max physics steps per frame render (WARNING: physics can slow down at low frame rates)
   private _maxSubSteps = 0; // max physics steps per stepSimulation() call
 
-  private _onPhysicsUpdate = (motionStates: Array<MotionState>) => {};
+  private _onPhysicsUpdate = (motionStates: Array<MotionState>, physicsStepComputeTime: number) => {};
 
   private _rigidBodies = new Array<RigidBody>();
   private _motionStates = new Array<MotionState>();
@@ -43,7 +52,7 @@ export class Physics {
     this.init(wasmPath);
   }
 
-  set onPhysicsUpdate(onPhysicsUpdate: (motionStates: Array<MotionState>) => void) {
+  set onPhysicsUpdate(onPhysicsUpdate: (motionStates: Array<MotionState>, physicsStepComputeTime: number) => void) {
     this._onPhysicsUpdate = onPhysicsUpdate;
   }
 
@@ -233,7 +242,7 @@ export class Physics {
     }
 
     deltaTime = Math.max(MIN_DELTA_TIME, Math.min(deltaTime, MAX_DELTA_TIME));
-    clog(`onRenderUpdate(): deltaTime: ${deltaTime}`, LogLevel.Debug);
+    // clog(`onRenderUpdate(): deltaTime: ${deltaTime}`, LogLevel.Debug);
 
     this._accumulator += deltaTime;
 
@@ -241,7 +250,7 @@ export class Physics {
 
     let stepNum = 0;
     while (this._accumulator >= this._fixedTimeStep && stepNum < this._maxSteps) {
-      clog(`stepNum: ${stepNum}`, LogLevel.Debug);
+      // clog(`stepNum: ${stepNum}`, LogLevel.Debug);
       const beforeStepTime = now();
 
       this._dynamicsWorld.stepSimulation(this._fixedTimeStep, this._maxSubSteps);
@@ -294,9 +303,10 @@ export class Physics {
           //   }
           // };
         }
-        this._onPhysicsUpdate([...this._motionStates]);
+        // this._onPhysicsUpdate([...this._motionStates], now() - beforeStepTime);
       }
 
+      this._onPhysicsUpdate([...this._motionStates], now() - beforeStepTime);
       // this._gui.updatePhysicsStepComputeTime(now() - beforeStepTime);
       this._accumulator -= this._fixedTimeStep;
       stepNum++;

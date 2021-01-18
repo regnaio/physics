@@ -1,6 +1,6 @@
 module.exports = {
-  mode: 'development',
-  // mode: 'production',
+  // mode: 'development',
+  mode: 'production',
   entry: {
     app: ['./js/app.js'],
     worker: ['./js/worker.js']

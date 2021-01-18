@@ -10,7 +10,7 @@ export class Physics {
         this._accumulator = 0;
         this._maxSteps = 4; // max physics steps per frame render (WARNING: physics can slow down at low frame rates)
         this._maxSubSteps = 0; // max physics steps per stepSimulation() call
-        this._onPhysicsUpdate = (motionStates) => { };
+        this._onPhysicsUpdate = (motionStates, physicsStepComputeTime) => { };
         this._rigidBodies = new Array();
         this._motionStates = new Array();
         this._didAdd = false;
@@ -170,12 +170,12 @@ export class Physics {
             return;
         }
         deltaTime = Math.max(MIN_DELTA_TIME, Math.min(deltaTime, MAX_DELTA_TIME));
-        clog(`onRenderUpdate(): deltaTime: ${deltaTime}`, LogLevel.Debug);
+        // clog(`onRenderUpdate(): deltaTime: ${deltaTime}`, LogLevel.Debug);
         this._accumulator += deltaTime;
         const { btTransformA } = tempData;
         let stepNum = 0;
         while (this._accumulator >= this._fixedTimeStep && stepNum < this._maxSteps) {
-            clog(`stepNum: ${stepNum}`, LogLevel.Debug);
+            // clog(`stepNum: ${stepNum}`, LogLevel.Debug);
             const beforeStepTime = now();
             this._dynamicsWorld.stepSimulation(this._fixedTimeStep, this._maxSubSteps);
             // clog('onRenderUpdate(): stepSimulation', LogLevel.Debug);
@@ -225,8 +225,9 @@ export class Physics {
                     //   }
                     // };
                 }
-                this._onPhysicsUpdate([...this._motionStates]);
+                // this._onPhysicsUpdate([...this._motionStates], now() - beforeStepTime);
             }
+            this._onPhysicsUpdate([...this._motionStates], now() - beforeStepTime);
             // this._gui.updatePhysicsStepComputeTime(now() - beforeStepTime);
             this._accumulator -= this._fixedTimeStep;
             stepNum++;

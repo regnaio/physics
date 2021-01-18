@@ -34,6 +34,7 @@ export class WithWorker {
 
     loadAxes(this._scene);
 
+    let messageNum = 0;
     this._scene.registerBeforeRender(() => {
       // this._physics.onRenderUpdate(this._engine.getDeltaTime() / 1000);
 
@@ -42,6 +43,8 @@ export class WithWorker {
         data: this._engine.getDeltaTime() / 1000
       };
       this._worker.postMessage(message);
+      cblog(`messageNum: ${messageNum}`, LogLevel.Debug, LogCategory.Main);
+      messageNum++;
     });
 
     this._engine.runRenderLoop(() => {
@@ -64,24 +67,29 @@ export class WithWorker {
   }
 
   private setupWorker(): void {
+    // let messageNum = 0;
     this._worker.onmessage = (ev: MessageEvent<any>) => {
-      cblog('main _worker.onmessage(): ev', LogLevel.Debug, LogCategory.Main, ev);
+      // cblog('main _worker.onmessage(): ev', LogLevel.Debug, LogCategory.Main, ev);
+      // cblog(`messageNum: ${messageNum}`, LogLevel.Debug, LogCategory.Main);
 
       const message = ev.data as Message;
       switch (message.type) {
         case MessageType.Render:
           break;
         case MessageType.Step:
-          this.onPhysicsUpdate(message.data as Array<MotionState>);
+          const { motionStates, physicsStepComputeTime } = message.data;
+          this.onPhysicsUpdate(motionStates as Array<MotionState>, physicsStepComputeTime as number);
           break;
         case MessageType.Add:
           break;
         case MessageType.Remove:
           break;
       }
+
+      // messageNum++;
     };
 
-    this._worker.postMessage('hello');
+    // this._worker.postMessage('hello');
   }
 
   private loadEnvironment(): void {
@@ -149,7 +157,7 @@ export class WithWorker {
     mesh.setEnabled(false);
   }
 
-  private onPhysicsUpdate(motionStates: Array<MotionState>): void {
+  private onPhysicsUpdate(motionStates: Array<MotionState>, physicsStepComputeTime: number): void {
     for (const [i, motionState] of motionStates.entries()) {
       if (motionState === undefined) {
         break;
@@ -165,5 +173,7 @@ export class WithWorker {
       instancedMesh.position.set(position.x, position.y, position.z);
       instancedMesh.rotationQuaternion?.set(rotation.x, rotation.y, rotation.z, rotation.w);
     }
+
+    this._gui.updatePhysicsStepComputeTime(physicsStepComputeTime);
   }
 }

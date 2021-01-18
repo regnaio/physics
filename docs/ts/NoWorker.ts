@@ -29,7 +29,7 @@ export class NoWorker {
 
     this.setupGUI();
 
-    this._physics.onPhysicsUpdate = motionStates => {
+    this._physics.onPhysicsUpdate = (motionStates, physicsStepComputeTime) => {
       // const { numToAdd } = this._gui.datData;
       // for (let i = 0; i < numToAdd; i++) {
       for (const [i, motionState] of motionStates.entries()) {
@@ -48,8 +48,10 @@ export class NoWorker {
         instancedMesh.position.set(position.x, position.y, position.z);
         instancedMesh.rotationQuaternion?.set(rotation.x, rotation.y, rotation.z, rotation.w);
       }
+
+      this._gui.updatePhysicsStepComputeTime(physicsStepComputeTime);
     };
-    
+
     loadAxes(this._scene);
 
     this._scene.registerBeforeRender(() => {
