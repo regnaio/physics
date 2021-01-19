@@ -32,4 +32,3 @@ export var CollisionFilterMask;
     CollisionFilterMask[CollisionFilterMask["Environment"] = 2] = "Environment";
     CollisionFilterMask[CollisionFilterMask["Other"] = 3] = "Other";
 })(CollisionFilterMask || (CollisionFilterMask = {}));
-//# sourceMappingURL=physicsHelper.js.map

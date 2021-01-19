@@ -46,4 +46,3 @@ physics.onPhysicsUpdate = (motionStates, physicsStepComputeTime) => {
     };
     self.postMessage(JSON.stringify(message));
 };
-//# sourceMappingURL=worker.js.map

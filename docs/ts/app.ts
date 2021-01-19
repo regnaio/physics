@@ -1,6 +1,8 @@
 import { NoWorkerBabylon } from './NoWorkerBabylon';
 import { NoWorker } from './NoWorker';
 import { WithWorker } from './WithWorker';
+import { WithWorkerSAB } from './WithWorkerSAB';
+import { WithWorkerSABAtomics } from './WithWorkerSABAtomics';
 
 import { LogLevel, clog } from './utils';
 
@@ -18,6 +20,12 @@ switch (route) {
     break;
   case 'withworker':
     new WithWorker();
+    break;
+  case 'withworkersab':
+    new WithWorkerSAB();
+    break;
+  case 'withworkersabatomics':
+    new WithWorkerSABAtomics();
     break;
   default:
     clog(`Invalid route ${route}`, LogLevel.Error);

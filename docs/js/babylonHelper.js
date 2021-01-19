@@ -28,4 +28,3 @@ export function loadAxes(scene) {
     axisZ.isPickable = false;
     axisZ.color = new BABYLON.Color3(0, 0, 1);
 }
-//# sourceMappingURL=babylonHelper.js.map

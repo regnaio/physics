@@ -52,4 +52,3 @@ export class GUI {
         }
     }
 }
-//# sourceMappingURL=GUI.js.map

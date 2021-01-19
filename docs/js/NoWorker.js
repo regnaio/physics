@@ -101,4 +101,3 @@ export class NoWorker {
         mesh.setEnabled(false);
     }
 }
-//# sourceMappingURL=NoWorker.js.map

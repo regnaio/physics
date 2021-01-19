@@ -55,8 +55,7 @@ export class Physics {
             this.loadEnvironment();
         }
         catch (err) {
-            console.log('init(): err', err);
-            // clog('init(): err', LogLevel.Fatal, err);
+            clog('init(): err', LogLevel.Fatal, err);
         }
     }
     setupCallbacks() {
@@ -123,7 +122,7 @@ export class Physics {
         slide.add(this._dynamicsWorld);
     }
     add(numToAdd) {
-        clog('add()', LogLevel.Debug);
+        clog(`add(): numToAdd: ${numToAdd}`, LogLevel.Debug);
         if (this._dynamicsWorld === undefined) {
             clog('add(): _dynamicsWorld === undefined', LogLevel.Error);
             return;
@@ -234,4 +233,3 @@ export class Physics {
         }
     }
 }
-//# sourceMappingURL=Physics.js.map

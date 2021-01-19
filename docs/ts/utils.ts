@@ -35,9 +35,7 @@ export function cblog(message: string, logLevel: LogLevel, logCategory: LogCateg
 };
 
 export function now(): number {
-  // return window !== undefined && window.performance !== undefined ? performance.now() : Date.now();
   return performance !== undefined ? performance.now() : Date.now()
-  // return Date.now();
 }
 
 export function randomRange(min: number, max: number): number {

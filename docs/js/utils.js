@@ -35,11 +35,8 @@ export function cblog(message, logLevel, logCategory, ...extra) {
 }
 ;
 export function now() {
-    // return window !== undefined && window.performance !== undefined ? performance.now() : Date.now();
     return performance !== undefined ? performance.now() : Date.now();
-    // return Date.now();
 }
 export function randomRange(min, max) {
     return Math.random() * (max - min) + min;
 }
-//# sourceMappingURL=utils.js.map

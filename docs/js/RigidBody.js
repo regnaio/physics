@@ -57,4 +57,3 @@ export class RigidBody {
         Ammo.destroy(this._localInertia);
     }
 }
-//# sourceMappingURL=RigidBody.js.map

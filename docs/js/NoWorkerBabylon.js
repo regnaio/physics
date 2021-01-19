@@ -141,4 +141,3 @@ export class NoWorkerBabylon {
         });
     }
 }
-//# sourceMappingURL=NoWorkerBabylon.js.map

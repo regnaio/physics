@@ -136,4 +136,3 @@ export class WithWorker {
         this._gui.updatePhysicsStepComputeTime(physicsStepComputeTime);
     }
 }
-//# sourceMappingURL=WithWorker.js.map

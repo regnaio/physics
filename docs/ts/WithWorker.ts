@@ -133,6 +133,7 @@ export class WithWorker {
       };
       this._worker.postMessage(JSON.stringify(message));
     };
+
     this._gui.datData.remove = () => {
       clog('Remove', LogLevel.Debug);
 
@@ -147,8 +148,10 @@ export class WithWorker {
       };
       this._worker.postMessage(JSON.stringify(message));
     };
+
     this._gui.datData.numToAdd = 500;
     this._gui.datData.physicsStepComputeTime = 0;
+    
     this._gui.init();
 
     mesh.setEnabled(false);
