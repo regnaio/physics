@@ -6,17 +6,43 @@
     <title>Physics</title>
   </head>
   <body>
-    <ul>
-      <li><a href="noworkerbabylon">No Worker (Babylon)</a></li>
-      <li><a href="noworker">No Worker</a></li>
-      <li><a href="withworker">Worker</a></li>
-    </ul>
-    <p>
-      Works in Progress (requires Chromium 87+):
-    </p>
-    <ul>
-      <li><a href="withworkersab">Worker (SharedArrayBuffer)</a></li>
-      <li><a href="withworkersabatomics">Worker (SharedArrayBuffer, Atomics)</a></li>
-    </ul>
+    Before going through all the comparisons, here is the demo (#4) with perhaps the best tradeoffs, which requires Chromium 87+:
+    <li><a href="withworkersab">Worker (SharedArrayBuffer)</a></li></br>
+
+    and the second-best demo (#2):
+    <li><a href="noworker">No Worker</a></li></br>
+
+    <h3>Comparisons</h3>
+    #1. Pure Babylon implementation with no Web Worker</br>
+    Pros: Feature-rich and stable physics with decent step compute time, simple development</br>
+    Cons: Low FPS
+    <li><a href="noworkerbabylon">No Worker (Babylon)</a></li></br>
+    
+    #2. Custom physics with no Web Worker</br>
+    Pros: Fastest physics step compute time with decent FPS</br>
+    Cons: Minimal physics features, not as simple development
+    <li><a href="noworker">No Worker</a></li></br>
+    
+    #3. Custom physics with Web Worker using postMessage and onMessage</br>
+    Pros: High FPS</br>
+    Cons: Same as #2 + unstable physics (slows down with time), thread communication overflow (blocking events), difficult development (coordinating render and physics objects in different threads)
+    <li><a href="withworker">Worker</a></li></br>
+
+    <h4>The demos below require Chromium 87+ for SharedArrayBuffer:</h4>
+    
+    #4. Custom physics with Web Worker using SharedArrayBuffer</br>
+    Pros: High FPS, relatively stable physics (for 500 physics boxes)</br>
+    Cons: Physics step compute time not as fast as #2 + same as #3 except physics seems stable
+    <li><a href="withworkersab">Worker (SharedArrayBuffer)</a></li></br>
+
+    #5. Custom physics with Web Worker using SharedArrayBuffer with Atomics waitAsync and notify</br>
+    Pros: Highest FPS</br>
+    Cons: Same as #3
+    <li><a href="withworkersabatomics">Worker (SharedArrayBuffer, Atomics)</a></li></br>
+
+    #6. Custom physics with Web Worker using SharedArrayBuffer, postMessage, and onMessage</br>
+    Pros: Highest FPS</br>
+    Cons: Same as #3
+    <li><a href="withworkersabpm">Worker (SharedArrayBuffer, PostMessage)</a></li>
   </body>
 </html>

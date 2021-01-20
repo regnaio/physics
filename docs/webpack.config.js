@@ -5,6 +5,7 @@ module.exports = {
     app: ['./js/app.js'],
     worker: ['./js/worker.js'],
     workerSAB: ['./js/workerSAB.js'],
+    workerSABPM: ['./js/workerSABPM.js'],
     workerSABAtomics: ['./js/workerSABAtomics.js']
   },
   output: {

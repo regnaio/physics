@@ -259,6 +259,7 @@ export class Physics {
         for (const [i, rigidBody] of this._rigidBodies.entries()) {
           // const rigidBody = this._rigidBodies[i];
           if (rigidBody === undefined) {
+            clog('onRenderUpdate(): rigidBody === undefined', LogLevel.Warn);
             break;
           }
 

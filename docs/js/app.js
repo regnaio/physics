@@ -2,6 +2,7 @@ import { NoWorkerBabylon } from './NoWorkerBabylon';
 import { NoWorker } from './NoWorker';
 import { WithWorker } from './WithWorker';
 import { WithWorkerSAB } from './WithWorkerSAB';
+import { WithWorkerSABPM } from './WithWorkerSABPM';
 import { WithWorkerSABAtomics } from './WithWorkerSABAtomics';
 import { LogLevel, clog } from './utils';
 const parts = window.location.pathname.split('/');
@@ -19,6 +20,9 @@ switch (route) {
         break;
     case 'withworkersab':
         new WithWorkerSAB();
+        break;
+    case 'withworkersabpm':
+        new WithWorkerSABPM();
         break;
     case 'withworkersabatomics':
         new WithWorkerSABAtomics();
