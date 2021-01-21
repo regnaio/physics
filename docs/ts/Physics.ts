@@ -1,11 +1,13 @@
 import {
   GRAVITY,
+  MIN_DELTA_TIME,
+  MAX_DELTA_TIME,
+  MAX_STEPS_PER_FRAME,
+  MAX_SUBSTEPS_PER_STEP,
   CollisionFilterGroup,
   CollisionFilterMask,
   ActivationState,
   CollisionFlag,
-  MIN_DELTA_TIME,
-  MAX_DELTA_TIME,
   MotionState
 } from './physicsHelper';
 
@@ -35,8 +37,6 @@ export class Physics {
 
   private _fixedTimeStep = 1 / 60;
   private _accumulator = 0;
-  private _maxSteps = 4; // max physics steps per frame render (WARNING: physics can slow down at low frame rates)
-  private _maxSubSteps = 0; // max physics steps per stepSimulation() call
 
   private _onPhysicsUpdate = (motionStates: Array<MotionState>, physicsStepComputeTime: number) => {};
 
@@ -45,7 +45,6 @@ export class Physics {
 
   private _didAdd = false;
 
-  // constructor(private _gui: GUI) {
   constructor(wasmPath?: string) {
     this.init(wasmPath);
   }
@@ -232,7 +231,7 @@ export class Physics {
   }
 
   // https://gafferongames.com/post/fix_your_timestep/
-  onRenderUpdate(deltaTime: number) {
+  onRenderUpdate(deltaTime: number, useSharedMemory = false) {
     if (this._dynamicsWorld === undefined) {
       clog('onRenderUpdate(): _dynamicsWorld === undefined', LogLevel.Warn);
       return;
@@ -246,11 +245,11 @@ export class Physics {
     const { btTransformA } = tempData;
 
     let stepNum = 0;
-    while (this._accumulator >= this._fixedTimeStep && stepNum < this._maxSteps) {
+    while (this._accumulator >= this._fixedTimeStep && stepNum < MAX_STEPS_PER_FRAME) {
       // clog(`stepNum: ${stepNum}`, LogLevel.Debug);
       const beforeStepTime = now();
 
-      this._dynamicsWorld.stepSimulation(this._fixedTimeStep, this._maxSubSteps);
+      this._dynamicsWorld.stepSimulation(this._fixedTimeStep, MAX_SUBSTEPS_PER_STEP);
       // clog('onRenderUpdate(): stepSimulation', LogLevel.Debug);
 
       if (this._didAdd) {
@@ -301,11 +300,11 @@ export class Physics {
           //   }
           // };
         }
-        // this._onPhysicsUpdate([...this._motionStates], now() - beforeStepTime);
       }
 
-      this._onPhysicsUpdate([...this._motionStates], now() - beforeStepTime);
-      // this._gui.updatePhysicsStepComputeTime(now() - beforeStepTime);
+      const physicsStepComputeTime = now() - beforeStepTime;
+      this._onPhysicsUpdate(useSharedMemory ? this._motionStates : [...this._motionStates], physicsStepComputeTime);
+
       this._accumulator -= this._fixedTimeStep;
       stepNum++;
     }

@@ -1,3 +1,32 @@
+export function optimizeScene(scene) {
+    scene.autoClearDepthAndStencil = false;
+    scene.blockMaterialDirtyMechanism = true;
+    const options = new BABYLON.SceneOptimizerOptions(60);
+    // options.addOptimization(new BABYLON.MergeMeshesOptimization(0));
+    options.addOptimization(new BABYLON.ShadowsOptimization(0));
+    options.addOptimization(new BABYLON.LensFlaresOptimization(0));
+    options.addOptimization(new BABYLON.PostProcessesOptimization(1));
+    options.addOptimization(new BABYLON.ParticlesOptimization(1));
+    options.addOptimization(new BABYLON.TextureOptimization(2, 256));
+    options.addOptimization(new BABYLON.RenderTargetsOptimization(3));
+    // options.addOptimization(new BABYLON.HardwareScalingOptimization(4, 2));
+    // TODO: Custom optimizations, e.g. disable or reduce projectile collision calculations
+    // options.addCustomOptimization(scene => {
+    //   return true;
+    // }, () => {
+    //   return 'custom optimization';
+    // }, 4);
+    const optimizer = new BABYLON.SceneOptimizer(scene, options, true, false);
+    optimizer.start();
+}
+export function setupCamera(camera, canvas) {
+    camera.keysUp = [];
+    camera.keysLeft = [];
+    camera.keysDown = [];
+    camera.keysRight = [];
+    camera.attachControl(canvas, false);
+    camera.setTarget(new BABYLON.Vector3(0, 10, 0));
+}
 export function loadAxes(scene) {
     const size = 100;
     const axisX = BABYLON.Mesh.CreateLines('axisX', [

@@ -1,3 +1,4 @@
+import { now } from "./utils";
 export class GUI {
     constructor() {
         this._fps = new Stats();
@@ -14,6 +15,7 @@ export class GUI {
             numToAdd: 0,
             physicsStepComputeTime: 0
         };
+        this._prevUpdateTime = 0;
         this._shouldUpdatePhysicsStepComputeTime = false;
         document.body.appendChild(this._fps.dom);
         this._fps.dom.style.cssText = 'position:absolute;top:0px;left:0px;z-index:4';
@@ -25,9 +27,11 @@ export class GUI {
         this._memory.dom.style.cssText = 'position:absolute;top:0px;left:160px;z-index:4';
         this._memory.showPanel(2);
         this._datGUI.domElement.style.cssText = 'position:absolute;top:0px;right:0px;z-index:4';
-        setInterval(() => {
-            this._shouldUpdatePhysicsStepComputeTime = true;
-        }, 500);
+        // setInterval(() => {
+        //   // clog('GUI: constructor(): setInterval: _shouldUpdatePhysicsStepComputeTime = true', LogLevel.Debug);
+        //   this._shouldUpdatePhysicsStepComputeTime = true;
+        // }, 500);
+        requestAnimationFrame(this.checkUpdatePhysicsStepComputeTime.bind(this));
     }
     get datData() {
         return this._datData;
@@ -44,6 +48,15 @@ export class GUI {
         this._fps.update();
         this._frameRenderDuration.update();
         this._memory.update();
+    }
+    checkUpdatePhysicsStepComputeTime() {
+        // clog('checkUpdatePhysicsStepComputeTime()', LogLevel.Debug);
+        const currTime = now();
+        if (currTime - this._prevUpdateTime > 500) {
+            this._shouldUpdatePhysicsStepComputeTime = true;
+            this._prevUpdateTime = currTime;
+        }
+        requestAnimationFrame(this.checkUpdatePhysicsStepComputeTime.bind(this));
     }
     updatePhysicsStepComputeTime(physicsStepComputeTime) {
         if (this._shouldUpdatePhysicsStepComputeTime) {

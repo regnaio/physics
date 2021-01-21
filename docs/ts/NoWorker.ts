@@ -2,20 +2,23 @@ import { Physics } from './Physics';
 
 import { GUI } from './GUI';
 
-import { loadAxes } from './babylonHelper';
+import { optimizeScene, setupCamera, loadAxes } from './babylonHelper';
 
 import { LogLevel, clog } from './utils';
 
 export class NoWorker {
   private _canvas = document.getElementById('renderCanvas') as HTMLCanvasElement;
   private _engine = new BABYLON.Engine(this._canvas);
-  private _scene = new BABYLON.Scene(this._engine);
+  private _scene = new BABYLON.Scene(this._engine, {
+    useGeometryUniqueIdsMap: true,
+    useMaterialMeshMap: true,
+    useClonedMeshMap: true
+  });
   private _camera = new BABYLON.ArcRotateCamera('', 0, Math.PI / 4, 100, new BABYLON.Vector3(), this._scene);
   private _light = new BABYLON.HemisphericLight('', new BABYLON.Vector3(0, 100, 0), this._scene);
 
   private _gui = new GUI();
 
-  // private _physics = new Physics(this._gui);
   private _physics = new Physics();
 
   private _instancedMeshes = new Array<BABYLON.InstancedMesh>();
@@ -23,17 +26,14 @@ export class NoWorker {
   constructor() {
     clog('NoWorker', LogLevel.Info);
 
-    this.setupCamera();
-
+    optimizeScene(this._scene);
+    setupCamera(this._camera, this._canvas);
     this.loadEnvironment();
-
     this.setupGUI();
+    loadAxes(this._scene);
 
     this._physics.onPhysicsUpdate = (motionStates, physicsStepComputeTime) => {
-      // const { numToAdd } = this._gui.datData;
-      // for (let i = 0; i < numToAdd; i++) {
       for (const [i, motionState] of motionStates.entries()) {
-        // const motionState = motionStates[i];
         if (motionState === undefined) {
           break;
         }
@@ -52,8 +52,6 @@ export class NoWorker {
       this._gui.updatePhysicsStepComputeTime(physicsStepComputeTime);
     };
 
-    loadAxes(this._scene);
-
     this._scene.registerBeforeRender(() => {
       this._physics.onRenderUpdate(this._engine.getDeltaTime() / 1000);
     });
@@ -66,15 +64,6 @@ export class NoWorker {
     window.onresize = () => {
       this._engine.resize();
     };
-  }
-
-  private setupCamera(): void {
-    this._camera.keysUp = [];
-    this._camera.keysLeft = [];
-    this._camera.keysDown = [];
-    this._camera.keysRight = [];
-    this._camera.attachControl(this._canvas, false);
-    this._camera.setTarget(new BABYLON.Vector3(0, 10, 0));
   }
 
   private loadEnvironment(): void {

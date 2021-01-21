@@ -28,7 +28,7 @@ cblog('worker: physics:', LogLevel.Info, LogCategory.Worker, physics);
 let messageNum = 0;
 self.onmessage = (ev: MessageEvent<any>) => {
   // cblog('worker: self.onmessage(): ev:', LogLevel.Debug, LogCategory.Worker, ev);
-  cblog(`messageNum: ${messageNum}`, LogLevel.Debug, LogCategory.Worker);
+  // cblog(`messageNum: ${messageNum}`, LogLevel.Debug, LogCategory.Worker);
 
   const message = JSON.parse(ev.data) as Message;
   switch (message.type) {

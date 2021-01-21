@@ -1,3 +1,5 @@
+import { clog, LogLevel, now } from "./utils";
+
 interface DatData {
   add: () => void;
   remove: () => void;
@@ -23,6 +25,7 @@ export class GUI {
     physicsStepComputeTime: 0
   };
 
+  private _prevUpdateTime = 0;
   private _shouldUpdatePhysicsStepComputeTime = false;
 
   constructor() {
@@ -40,9 +43,12 @@ export class GUI {
 
     this._datGUI.domElement.style.cssText = 'position:absolute;top:0px;right:0px;z-index:4';
 
-    setInterval(() => {
-      this._shouldUpdatePhysicsStepComputeTime = true;
-    }, 500);
+    // setInterval(() => {
+    //   // clog('GUI: constructor(): setInterval: _shouldUpdatePhysicsStepComputeTime = true', LogLevel.Debug);
+    //   this._shouldUpdatePhysicsStepComputeTime = true;
+    // }, 500);
+
+    requestAnimationFrame(this.checkUpdatePhysicsStepComputeTime.bind(this));
   }
 
   get datData(): DatData {
@@ -62,6 +68,18 @@ export class GUI {
     this._fps.update();
     this._frameRenderDuration.update();
     this._memory.update();
+  }
+
+  private checkUpdatePhysicsStepComputeTime(): void {
+    // clog('checkUpdatePhysicsStepComputeTime()', LogLevel.Debug);
+    const currTime = now();
+
+    if (currTime - this._prevUpdateTime > 500) {
+      this._shouldUpdatePhysicsStepComputeTime = true;
+      this._prevUpdateTime = currTime;
+    }
+
+    requestAnimationFrame(this.checkUpdatePhysicsStepComputeTime.bind(this));
   }
 
   updatePhysicsStepComputeTime(physicsStepComputeTime: number): void {

@@ -6,13 +6,15 @@
     <title>Physics</title>
   </head>
   <body>
-    Before going through all the comparisons, here is the demo (#4) with perhaps the best tradeoffs, which requires Chromium 87+:
+    Before going through the comparisons, here is Demo #4 with perhaps the best tradeoffs, which requires Chromium 87+:
     <li><a href="withworkersab">Worker (SharedArrayBuffer)</a></li></br>
 
-    and the second-best demo (#2):
+    and the runner up is Demo #2, which sacrifices FPS for greater stability and slightly faster physics step compute times:
     <li><a href="noworker">No Worker</a></li></br>
 
-    <h3>Comparisons</h3>
+    <a href="https://github.com/regnaio/physics">Source code for all demos</a></br>
+
+    <h3>Demo Comparisons:</h3>
     #1. Pure Babylon implementation with no Web Worker</br>
     Pros: Feature-rich and stable physics with decent step compute time, simple development</br>
     Cons: Low FPS
@@ -20,7 +22,7 @@
     
     #2. Custom physics with no Web Worker</br>
     Pros: Fastest physics step compute time with decent FPS</br>
-    Cons: Minimal physics features, not as simple development
+    Cons: Far less physics features compared to Babylon, not as simple development
     <li><a href="noworker">No Worker</a></li></br>
     
     #3. Custom physics with Web Worker using postMessage and onMessage</br>

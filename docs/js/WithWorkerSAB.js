@@ -1,12 +1,16 @@
 import { GUI } from './GUI';
-import { loadAxes } from './babylonHelper';
+import { optimizeScene, setupCamera, loadAxes } from './babylonHelper';
 import { NUM_BYTES_FLOAT32 } from './binaryHelper';
-import { LogLevel, LogCategory, clog, cblog } from './utils';
+import { LogLevel, clog } from './utils';
 export class WithWorkerSAB {
     constructor() {
         this._canvas = document.getElementById('renderCanvas');
         this._engine = new BABYLON.Engine(this._canvas);
-        this._scene = new BABYLON.Scene(this._engine);
+        this._scene = new BABYLON.Scene(this._engine, {
+            useGeometryUniqueIdsMap: true,
+            useMaterialMeshMap: true,
+            useClonedMeshMap: true
+        });
         this._camera = new BABYLON.ArcRotateCamera('', 0, Math.PI / 4, 100, new BABYLON.Vector3(), this._scene);
         this._light = new BABYLON.HemisphericLight('', new BABYLON.Vector3(0, 100, 0), this._scene);
         this._worker = new Worker('../dist/workerSAB.js');
@@ -14,8 +18,9 @@ export class WithWorkerSAB {
         this._dataF32SAB = new Float32Array(this._dataSAB);
         this._gui = new GUI();
         this._instancedMeshes = new Array();
-        clog('WithWorker', LogLevel.Info);
-        this.setupCamera();
+        clog('WithWorkerSAB', LogLevel.Info);
+        optimizeScene(this._scene);
+        setupCamera(this._camera, this._canvas);
         this.setupGUI();
         this.loadEnvironment();
         loadAxes(this._scene);
@@ -29,14 +34,6 @@ export class WithWorkerSAB {
         window.onresize = () => {
             this._engine.resize();
         };
-    }
-    setupCamera() {
-        this._camera.keysUp = [];
-        this._camera.keysLeft = [];
-        this._camera.keysDown = [];
-        this._camera.keysRight = [];
-        this._camera.attachControl(this._canvas, false);
-        this._camera.setTarget(new BABYLON.Vector3(0, 10, 0));
     }
     loadEnvironment() {
         const ground = BABYLON.MeshBuilder.CreateBox('', { width: 50, height: 1, depth: 50 }, this._scene);
@@ -101,7 +98,7 @@ export class WithWorkerSAB {
             // cblog(`main: onPhysicsUpdate(): f32Index: ${f32Index}`, LogLevel.Debug, LogCategory.Main);
             ++instancedMeshIndex;
         }
-        cblog('main: onPhysicsUpdate(): _dataF32SAB[1]', LogLevel.Info, LogCategory.Main, this._dataF32SAB[1]);
+        // cblog('main: onPhysicsUpdate(): _dataF32SAB[1]', LogLevel.Info, LogCategory.Main, this._dataF32SAB[1]);
         this._gui.updatePhysicsStepComputeTime(this._dataF32SAB[1]);
     }
 }

@@ -1,7 +1,11 @@
 export const GRAVITY = -9.8;
 
-export const MIN_DELTA_TIME = 1 / 1000;
-export const MAX_DELTA_TIME = 1;
+// export const MIN_DELTA_TIME = 1 / 1000; // sec, WARNING: physics can speed up at high frame rates (frame duration < 1 ms)
+export const MIN_DELTA_TIME = 0; // sec, prevents physics from speeding up
+export const MAX_DELTA_TIME = 1; // sec
+
+export const MAX_STEPS_PER_FRAME = 4; // WARNING: physics can slow down at low frame rates (frame duration > 4 / 60 sec)
+export const MAX_SUBSTEPS_PER_STEP = 0; // only 1 step per stepSimulation() call
 
 export enum ActivationState {
   ACTIVE_TAG = 1,
@@ -11,7 +15,7 @@ export enum ActivationState {
   DISABLE_SIMULATION
 }
 
-// Kinematic if not specified
+// Dynamic if not specified
 export enum CollisionFlag {
   CF_STATIC_OBJECT = 1,
   CF_KINEMATIC_OBJECT = 2,

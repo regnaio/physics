@@ -1,6 +1,6 @@
 import { GRAVITY, CollisionFilterGroup, CollisionFilterMask, ActivationState, CollisionFlag } from './physicsHelper';
 import { GUI } from './GUI';
-import { loadAxes } from './babylonHelper';
+import { optimizeScene, setupCamera, loadAxes } from './babylonHelper';
 import { LogLevel, clog, now } from './utils';
 export class NoWorkerBabylon {
     constructor() {
@@ -9,13 +9,18 @@ export class NoWorkerBabylon {
             deterministicLockstep: true,
             lockstepMaxSteps: 4
         });
-        this._scene = new BABYLON.Scene(this._engine);
+        this._scene = new BABYLON.Scene(this._engine, {
+            useGeometryUniqueIdsMap: true,
+            useMaterialMeshMap: true,
+            useClonedMeshMap: true
+        });
         this._camera = new BABYLON.ArcRotateCamera('', 0, Math.PI / 4, 100, new BABYLON.Vector3(), this._scene);
         this._light = new BABYLON.HemisphericLight('', new BABYLON.Vector3(0, 100, 0), this._scene);
         this._gui = new GUI();
         this._instancedMeshes = new Array();
         clog('NoWorker', LogLevel.Info);
-        this.setupCamera();
+        optimizeScene(this._scene);
+        setupCamera(this._camera, this._canvas);
         this.setupPhysics();
         loadAxes(this._scene);
         this._engine.runRenderLoop(() => {
@@ -25,14 +30,6 @@ export class NoWorkerBabylon {
         window.onresize = () => {
             this._engine.resize();
         };
-    }
-    setupCamera() {
-        this._camera.keysUp = [];
-        this._camera.keysLeft = [];
-        this._camera.keysDown = [];
-        this._camera.keysRight = [];
-        this._camera.attachControl(this._canvas, false);
-        this._camera.setTarget(new BABYLON.Vector3(0, 10, 0));
     }
     async setupPhysics() {
         try {
@@ -128,16 +125,12 @@ export class NoWorkerBabylon {
         this._gui.datData.physicsStepComputeTime = 0;
         this._gui.init();
         mesh.setEnabled(false);
-        let beforeStepTime = now();
+        let beforeStepTime = 0;
         this._scene.onBeforeStepObservable.add(() => {
-            const current = now();
-            const betweenStepsDuration = current - beforeStepTime;
-            beforeStepTime = current;
+            beforeStepTime = now();
         });
         this._scene.onAfterStepObservable.add(() => {
-            const current = now();
-            const stepDuration = current - beforeStepTime;
-            this._gui.updatePhysicsStepComputeTime(stepDuration);
+            this._gui.updatePhysicsStepComputeTime(now() - beforeStepTime);
         });
     }
 }

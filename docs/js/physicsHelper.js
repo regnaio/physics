@@ -1,6 +1,9 @@
 export const GRAVITY = -9.8;
-export const MIN_DELTA_TIME = 1 / 1000;
-export const MAX_DELTA_TIME = 1;
+// export const MIN_DELTA_TIME = 1 / 1000; // sec, WARNING: physics can speed up at high frame rates (frame duration < 1 ms)
+export const MIN_DELTA_TIME = 0; // sec, prevents physics from speeding up
+export const MAX_DELTA_TIME = 1; // sec
+export const MAX_STEPS_PER_FRAME = 4; // WARNING: physics can slow down at low frame rates (frame duration > 4 / 60 sec)
+export const MAX_SUBSTEPS_PER_STEP = 0; // only 1 step per stepSimulation() call
 export var ActivationState;
 (function (ActivationState) {
     ActivationState[ActivationState["ACTIVE_TAG"] = 1] = "ACTIVE_TAG";
@@ -9,7 +12,7 @@ export var ActivationState;
     ActivationState[ActivationState["DISABLE_DEACTIVATION"] = 4] = "DISABLE_DEACTIVATION";
     ActivationState[ActivationState["DISABLE_SIMULATION"] = 5] = "DISABLE_SIMULATION";
 })(ActivationState || (ActivationState = {}));
-// Kinematic if not specified
+// Dynamic if not specified
 export var CollisionFlag;
 (function (CollisionFlag) {
     CollisionFlag[CollisionFlag["CF_STATIC_OBJECT"] = 1] = "CF_STATIC_OBJECT";

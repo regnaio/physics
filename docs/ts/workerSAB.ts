@@ -4,33 +4,58 @@ import { LogLevel, LogCategory, cblog, now } from './utils';
 
 importScripts('../lib/ammo/ammo.wasm.js');
 
+cblog('worker: requestAnimationFrame:', LogLevel.Info, LogCategory.Worker, requestAnimationFrame);
+
 let dataF32SAB: Float32Array;
 
 const physics = new Physics();
 cblog('worker: physics:', LogLevel.Info, LogCategory.Worker, physics);
 
+let prevTime = now();
+
 // setInterval(() => {
+//   const currTime = now();
+//   const deltaTime = currTime - prevTime;
+//   // cblog(`worker: physicsLoop(): deltaTime: ${deltaTime}`, LogLevel.Debug, LogCategory.Worker);
 //   physics.onRenderUpdate(1 / 60);
+
+//   prevTime = currTime;
 // }, 1000 / 60);
 
-let prevTime = now();
+// Below causes spiral of death capped by _maxSteps, because onRenderUpdate cannot recover from 4 steps to 1 by itself
+// function physicsLoop(): void {
+//   const currTime = now();
+//   const deltaTime = currTime - prevTime;
+//   // cblog(`worker: physicsLoop(): deltaTime: ${deltaTime}`, LogLevel.Debug, LogCategory.Worker);
+//   physics.onRenderUpdate(deltaTime / 1000, dataF32SAB);
+
+//   const physicsStepComputeTime = dataF32SAB === undefined ? 0 : dataF32SAB[1];
+//   const difference = 1000 / 60 - physicsStepComputeTime;
+//   const timeoutDuration = difference < 0 ? 0 : difference;
+
+//   prevTime = currTime;
+//   setTimeout(physicsLoop, timeoutDuration);
+//   // requestAnimationFrame(physicsLoop);
+// }
+// physicsLoop();
+// // requestAnimationFrame(physicsLoop);
+
+const fixedTimeStep = 1 / 60;
+let accumulator = 0;
 function physicsLoop(): void {
   const currTime = now();
-  const deltaTime = currTime - prevTime;
-  // cblog(`worker: physicsLoop(): deltaTime: ${deltaTime}`, LogLevel.Debug, LogCategory.Worker);
+  const deltaTime = (currTime - prevTime) / 1000;
+  accumulator += deltaTime;
 
-  physics.onRenderUpdate(deltaTime / 1000);
-
-  const physicsStepComputeTime = dataF32SAB === undefined ? 0 : dataF32SAB[1];
-
-  const difference = 1000 / 60 - physicsStepComputeTime;
-  const timeoutDuration = difference < 0 ? 0 : difference;
+  if (accumulator > fixedTimeStep) {
+    physics.onRenderUpdate(fixedTimeStep, true);
+    accumulator -= fixedTimeStep;
+  }
 
   prevTime = currTime;
-  setTimeout(physicsLoop, timeoutDuration);
+  requestAnimationFrame(physicsLoop);
 }
-
-physicsLoop();
+requestAnimationFrame(physicsLoop);
 
 self.onmessage = (ev: MessageEvent<any>) => {
   cblog('worker: self.onmessage(): ev:', LogLevel.Debug, LogCategory.Worker, ev);

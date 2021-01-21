@@ -1,13 +1,17 @@
 import { GUI } from './GUI';
 import { MessageType } from './workerHelper';
-import { loadAxes } from './babylonHelper';
+import { optimizeScene, setupCamera, loadAxes } from './babylonHelper';
 import { NUM_BYTES_INT32, NUM_BYTES_FLOAT32 } from './binaryHelper';
-import { LogLevel, LogCategory, clog, cblog } from './utils';
+import { LogLevel, clog } from './utils';
 export class WithWorkerSABAtomics {
     constructor() {
         this._canvas = document.getElementById('renderCanvas');
         this._engine = new BABYLON.Engine(this._canvas);
-        this._scene = new BABYLON.Scene(this._engine);
+        this._scene = new BABYLON.Scene(this._engine, {
+            useGeometryUniqueIdsMap: true,
+            useMaterialMeshMap: true,
+            useClonedMeshMap: true
+        });
         this._camera = new BABYLON.ArcRotateCamera('', 0, Math.PI / 4, 100, new BABYLON.Vector3(), this._scene);
         this._light = new BABYLON.HemisphericLight('', new BABYLON.Vector3(0, 100, 0), this._scene);
         this._gui = new GUI();
@@ -15,26 +19,19 @@ export class WithWorkerSABAtomics {
         this._instancedMeshes = new Array();
         this._signalSAB = new SharedArrayBuffer(NUM_BYTES_INT32 * 2);
         this._dataSAB = new SharedArrayBuffer(0);
+        // _signalSAB holds 2 Int32, 1 for each the main thread and worker to watch and signal updates to each other
         this._signalI32SAB = new Int32Array(this._signalSAB);
         this._dataF32SAB = new Float32Array(this._dataSAB);
-        clog('WithWorker', LogLevel.Info);
-        this.setupCamera();
+        clog('WithWorkerSABATomics', LogLevel.Info);
+        optimizeScene(this._scene);
+        setupCamera(this._camera, this._canvas);
         this.setupWorker();
         this.setupGUI();
         this.loadEnvironment();
         loadAxes(this._scene);
-        // let messageNum = 0;
         this._scene.registerBeforeRender(() => {
-            // cblog(`messageNum: ${messageNum}`, LogLevel.Debug, LogCategory.Main);
-            // const message: Message = {
-            //   type: MessageType.Render,
-            //   data: this._engine.getDeltaTime() / 1000
-            // };
-            // this._worker.postMessage(JSON.stringify(message));
-            // messageNum++;
             this._dataF32SAB[0] = this._engine.getDeltaTime() / 1000;
             Atomics.notify(this._signalI32SAB, 0, 1);
-            // this.onPhysicsUpdate();
         });
         this._engine.runRenderLoop(() => {
             this._scene.render();
@@ -44,28 +41,16 @@ export class WithWorkerSABAtomics {
             this._engine.resize();
         };
     }
-    setupCamera() {
-        this._camera.keysUp = [];
-        this._camera.keysLeft = [];
-        this._camera.keysDown = [];
-        this._camera.keysRight = [];
-        this._camera.attachControl(this._canvas, false);
-        this._camera.setTarget(new BABYLON.Vector3(0, 10, 0));
-    }
     setupWorker() {
-        // this._signalSAB[0] = 0;
-        // this._signalSAB[1] = 0;
         const message = {
             type: MessageType.SignalSAB,
             data: this._signalSAB
         };
-        // this._worker.postMessage(message, [this._signalSAB]);
-        // this._worker.postMessage(message, [this._signalI32SAB]);
         this._worker.postMessage(message);
         this.waitLoop();
     }
     async waitLoop() {
-        cblog('main: waitLoop()', LogLevel.Debug, LogCategory.Main);
+        // cblog('main: waitLoop()', LogLevel.Debug, LogCategory.Main);
         // @ts-ignore
         const result = Atomics.waitAsync(this._signalI32SAB, 1, 0);
         if (result.value === 'not-equal') {
@@ -122,20 +107,18 @@ export class WithWorkerSABAtomics {
                 instancedMesh.rotationQuaternion = new BABYLON.Quaternion();
                 this._instancedMeshes[i] = instancedMesh;
             }
-            // const message: Message = {
-            //   type: MessageType.Add,
-            //   data: numToAdd
-            // };
-            // this._worker.postMessage(JSON.stringify(message));
             // deltaTime + physicsStepComputeTime + (position xyz + rotation xyzw) * numToAdd
             this._dataSAB = new SharedArrayBuffer(NUM_BYTES_FLOAT32 * (2 + 7 * numToAdd));
             this._dataF32SAB = new Float32Array(this._dataSAB);
+            // const message: Message = {
+            //   type: MessageType.DataSAB,
+            //   data: this._dataSAB
+            // };
+            // this._worker.postMessage(message);
             const message = {
-                type: MessageType.DataSAB,
+                type: MessageType.Add,
                 data: this._dataSAB
             };
-            // this._worker.postMessage(message, [this._dataSAB]);
-            // this._worker.postMessage(message, [this._dataF32SAB]);
             this._worker.postMessage(message);
         };
         this._gui.datData.remove = () => {
@@ -143,22 +126,19 @@ export class WithWorkerSABAtomics {
             this._instancedMeshes.forEach(instancedMesh => {
                 instancedMesh.dispose();
             });
-            // this._physics.remove();
-            // const message: Message = {
-            //   type: MessageType.Remove,
-            //   data: undefined
-            // };
-            // this._worker.postMessage(JSON.stringify(message));
+            const message = {
+                type: MessageType.Remove,
+                data: undefined
+            };
+            this._worker.postMessage(message);
         };
         this._gui.datData.numToAdd = 500;
         this._gui.datData.physicsStepComputeTime = 0;
         this._gui.init();
         mesh.setEnabled(false);
     }
-    // private onPhysicsUpdate(motionStates: Array<MotionState>, physicsStepComputeTime: number): void {
     onPhysicsUpdate() {
         // cblog('main: onPhysicsUpdate()', LogLevel.Debug, LogCategory.Main, this._dataF32SAB[2]);
-        // const f32Length = this._dataSAB.byteLength / NUM_BYTES_FLOAT32;
         let f32Index = 1;
         let instancedMeshIndex = 0;
         // cblog(`main: onPhysicsUpdate(): _dataF32SAB.length: ${this._dataF32SAB.length}`, LogLevel.Debug, LogCategory.Main);
@@ -168,10 +148,8 @@ export class WithWorkerSABAtomics {
             instancedMesh?.position.set(this._dataF32SAB[++f32Index], this._dataF32SAB[++f32Index], this._dataF32SAB[++f32Index]);
             instancedMesh?.rotationQuaternion?.set(this._dataF32SAB[++f32Index], this._dataF32SAB[++f32Index], this._dataF32SAB[++f32Index], this._dataF32SAB[++f32Index]);
             // cblog(`main: onPhysicsUpdate(): f32Index: ${f32Index}`, LogLevel.Debug, LogCategory.Main);
-            // ++f32Index;
             ++instancedMeshIndex;
         }
-        // cblog('main: onPhysicsUpdate(): _dataF32SAB[2]', LogLevel.Info, LogCategory.Main, this._dataF32SAB[2]);
         this._gui.updatePhysicsStepComputeTime(this._dataF32SAB[1]);
     }
 }

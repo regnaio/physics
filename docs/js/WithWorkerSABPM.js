@@ -1,39 +1,39 @@
 import { GUI } from './GUI';
 import { MessageType } from './workerHelper';
-import { loadAxes } from './babylonHelper';
-import { NUM_BYTES_INT32, NUM_BYTES_FLOAT32 } from './binaryHelper';
+import { optimizeScene, setupCamera, loadAxes } from './babylonHelper';
+import { NUM_BYTES_FLOAT32 } from './binaryHelper';
 import { LogLevel, clog } from './utils';
 export class WithWorkerSABPM {
     constructor() {
         this._canvas = document.getElementById('renderCanvas');
         this._engine = new BABYLON.Engine(this._canvas);
-        this._scene = new BABYLON.Scene(this._engine);
+        this._scene = new BABYLON.Scene(this._engine, {
+            useGeometryUniqueIdsMap: true,
+            useMaterialMeshMap: true,
+            useClonedMeshMap: true
+        });
         this._camera = new BABYLON.ArcRotateCamera('', 0, Math.PI / 4, 100, new BABYLON.Vector3(), this._scene);
         this._light = new BABYLON.HemisphericLight('', new BABYLON.Vector3(0, 100, 0), this._scene);
         this._gui = new GUI();
         this._worker = new Worker('../dist/workerSABPM.js');
         this._instancedMeshes = new Array();
-        this._signalSAB = new SharedArrayBuffer(NUM_BYTES_INT32 * 2);
+        // _dataSAB holds Float32's for deltaTime and position xyz and rotation xyzw for each physics box
         this._dataSAB = new SharedArrayBuffer(0);
-        this._signalI32SAB = new Int32Array(this._signalSAB);
         this._dataF32SAB = new Float32Array(this._dataSAB);
         clog('WithWorker', LogLevel.Info);
-        this.setupCamera();
+        optimizeScene(this._scene);
+        setupCamera(this._camera, this._canvas);
         this.setupWorker();
         this.setupGUI();
         this.loadEnvironment();
         loadAxes(this._scene);
-        // let messageNum = 0;
         this._scene.registerBeforeRender(() => {
-            // cblog(`messageNum: ${messageNum}`, LogLevel.Debug, LogCategory.Main);
+            this._dataF32SAB[0] = this._engine.getDeltaTime() / 1000;
             const message = {
                 type: MessageType.Render,
                 data: undefined
             };
             this._worker.postMessage(message);
-            // messageNum++;
-            this._dataF32SAB[0] = this._engine.getDeltaTime() / 1000;
-            // Atomics.notify(this._signalI32SAB, 0, 1);
         });
         this._engine.runRenderLoop(() => {
             this._scene.render();
@@ -135,7 +135,7 @@ export class WithWorkerSABPM {
             this._dataSAB = new SharedArrayBuffer(NUM_BYTES_FLOAT32 * (2 + 7 * numToAdd));
             this._dataF32SAB = new Float32Array(this._dataSAB);
             const message = {
-                type: MessageType.DataSAB,
+                type: MessageType.Add,
                 data: this._dataSAB
             };
             this._worker.postMessage(message);

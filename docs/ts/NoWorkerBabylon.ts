@@ -2,7 +2,7 @@ import { GRAVITY, CollisionFilterGroup, CollisionFilterMask, ActivationState, Co
 
 import { GUI } from './GUI';
 
-import { loadAxes } from './babylonHelper';
+import { optimizeScene, setupCamera, loadAxes } from './babylonHelper';
 
 import { LogLevel, clog, now } from './utils';
 
@@ -12,7 +12,11 @@ export class NoWorkerBabylon {
     deterministicLockstep: true,
     lockstepMaxSteps: 4
   });
-  private _scene = new BABYLON.Scene(this._engine);
+  private _scene = new BABYLON.Scene(this._engine, {
+    useGeometryUniqueIdsMap: true,
+    useMaterialMeshMap: true,
+    useClonedMeshMap: true
+  });
   private _camera = new BABYLON.ArcRotateCamera('', 0, Math.PI / 4, 100, new BABYLON.Vector3(), this._scene);
   private _light = new BABYLON.HemisphericLight('', new BABYLON.Vector3(0, 100, 0), this._scene);
 
@@ -23,10 +27,9 @@ export class NoWorkerBabylon {
   constructor() {
     clog('NoWorker', LogLevel.Info);
 
-    this.setupCamera();
-
+    optimizeScene(this._scene);
+    setupCamera(this._camera, this._canvas);
     this.setupPhysics();
-    
     loadAxes(this._scene);
 
     this._engine.runRenderLoop(() => {
@@ -37,15 +40,6 @@ export class NoWorkerBabylon {
     window.onresize = () => {
       this._engine.resize();
     };
-  }
-
-  private setupCamera(): void {
-    this._camera.keysUp = [];
-    this._camera.keysLeft = [];
-    this._camera.keysDown = [];
-    this._camera.keysRight = [];
-    this._camera.attachControl(this._canvas, false);
-    this._camera.setTarget(new BABYLON.Vector3(0, 10, 0));
   }
 
   private async setupPhysics(): Promise<void> {
@@ -176,17 +170,13 @@ export class NoWorkerBabylon {
 
     mesh.setEnabled(false);
 
-    let beforeStepTime = now();
+    let beforeStepTime = 0;
     this._scene.onBeforeStepObservable.add(() => {
-      const current = now();
-      const betweenStepsDuration = current - beforeStepTime;
-      beforeStepTime = current;
+      beforeStepTime = now();
     });
 
     this._scene.onAfterStepObservable.add(() => {
-      const current = now();
-      const stepDuration = current - beforeStepTime;
-      this._gui.updatePhysicsStepComputeTime(stepDuration);
+      this._gui.updatePhysicsStepComputeTime(now() - beforeStepTime);
     });
   }
 }
