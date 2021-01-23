@@ -60,15 +60,6 @@ export class WithWorkerSABPM {
     };
   }
 
-  private setupCamera(): void {
-    this._camera.keysUp = [];
-    this._camera.keysLeft = [];
-    this._camera.keysDown = [];
-    this._camera.keysRight = [];
-    this._camera.attachControl(this._canvas, false);
-    this._camera.setTarget(new BABYLON.Vector3(0, 10, 0));
-  }
-
   private setupWorker(): void {
     this._worker.onmessage = (ev: MessageEvent<any>) => {
       // cblog('main _worker.onmessage(): ev', LogLevel.Debug, LogCategory.Main, ev);
@@ -149,6 +140,7 @@ export class WithWorkerSABPM {
       this._gui.datData.remove();
 
       const { numToAdd } = this._gui.datData;
+      this._instancedMeshes = new Array<BABYLON.InstancedMesh>(numToAdd);
       for (let i = 0; i < numToAdd; i++) {
         const instancedMesh = mesh.createInstance('');
         instancedMesh.rotationQuaternion = new BABYLON.Quaternion();

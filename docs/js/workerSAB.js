@@ -34,6 +34,7 @@ function physicsLoop() {
     const currTime = now();
     const deltaTime = (currTime - prevTime) / 1000;
     accumulator += deltaTime;
+    // if instead of while, which causes spiral of death (deltaTime and # of physics steps per call keeps growing)
     if (accumulator > fixedTimeStep) {
         physics.onRenderUpdate(fixedTimeStep, true);
         accumulator -= fixedTimeStep;

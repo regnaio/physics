@@ -4,7 +4,7 @@ import { optimizeScene, setupCamera, loadAxes } from './babylonHelper';
 
 import { NUM_BYTES_FLOAT32 } from './binaryHelper';
 
-import { LogLevel, LogCategory, clog, cblog } from './utils';
+import { LogLevel, LogCategory, clog, cblog, now } from './utils';
 
 export class WithWorkerSAB {
   private _canvas = document.getElementById('renderCanvas') as HTMLCanvasElement;
@@ -35,8 +35,13 @@ export class WithWorkerSAB {
     this.loadEnvironment();
     loadAxes(this._scene);
 
+    let accumulator = 0;
+    let prevTime = now();
     this._scene.registerBeforeRender(() => {
+      const currTime = now();
+
       this.onPhysicsUpdate();
+      prevTime = currTime;
     });
 
     this._engine.runRenderLoop(() => {
@@ -78,9 +83,8 @@ export class WithWorkerSAB {
       clog('Add', LogLevel.Debug);
       this._gui.datData.remove();
 
-      // TODO: Set size of _instancedMeshes
-
       const { numToAdd } = this._gui.datData;
+      this._instancedMeshes = new Array<BABYLON.InstancedMesh>(numToAdd);
       for (let i = 0; i < numToAdd; i++) {
         const instancedMesh = mesh.createInstance('');
         instancedMesh.rotationQuaternion = new BABYLON.Quaternion();

@@ -125,6 +125,7 @@ export class WithWorkerSABAtomics {
       this._gui.datData.remove();
 
       const { numToAdd } = this._gui.datData;
+      this._instancedMeshes = new Array<BABYLON.InstancedMesh>(numToAdd);
       for (let i = 0; i < numToAdd; i++) {
         const instancedMesh = mesh.createInstance('');
         instancedMesh.rotationQuaternion = new BABYLON.Quaternion();
