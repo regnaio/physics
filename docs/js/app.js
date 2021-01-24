@@ -4,6 +4,7 @@ import { WithWorker } from './WithWorker';
 import { WithWorkerSAB } from './WithWorkerSAB';
 import { WithWorkerSABPM } from './WithWorkerSABPM';
 import { WithWorkerSABAtomics } from './WithWorkerSABAtomics';
+import { WithWorkerSABTest } from './WithWorkerSABTest';
 import { LogLevel, clog } from './utils';
 const parts = window.location.pathname.split('/');
 const route = parts.pop() || parts.pop();
@@ -26,6 +27,9 @@ switch (route) {
         break;
     case 'withworkersabatomics':
         new WithWorkerSABAtomics();
+        break;
+    case 'withworkersabtest':
+        new WithWorkerSABTest();
         break;
     default:
         clog(`Invalid route ${route}`, LogLevel.Error);

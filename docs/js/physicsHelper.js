@@ -33,5 +33,7 @@ export var CollisionFilterGroup;
 export var CollisionFilterMask;
 (function (CollisionFilterMask) {
     CollisionFilterMask[CollisionFilterMask["Environment"] = 2] = "Environment";
-    CollisionFilterMask[CollisionFilterMask["Other"] = 3] = "Other";
+    // Other = CollisionFilterGroup.Environment | CollisionFilterGroup.Other
+    CollisionFilterMask[CollisionFilterMask["Other"] = 1] = "Other";
+    // Other = 0
 })(CollisionFilterMask || (CollisionFilterMask = {}));

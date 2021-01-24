@@ -2,7 +2,7 @@ import { GUI } from './GUI';
 import { optimizeScene, setupCamera, loadAxes } from './babylonHelper';
 import { NUM_BYTES_FLOAT32 } from './binaryHelper';
 import { LogLevel, clog, now } from './utils';
-export class WithWorkerSAB {
+export class WithWorkerSABTest {
     constructor() {
         this._canvas = document.getElementById('renderCanvas');
         this._engine = new BABYLON.Engine(this._canvas);
@@ -13,7 +13,7 @@ export class WithWorkerSAB {
         });
         this._camera = new BABYLON.ArcRotateCamera('', 0, Math.PI / 4, 100, new BABYLON.Vector3(), this._scene);
         this._light = new BABYLON.HemisphericLight('', new BABYLON.Vector3(0, 100, 0), this._scene);
-        this._worker = new Worker('../dist/workerSAB.js');
+        this._worker = new Worker('../dist/workerSABTest.js');
         this._dataSAB = new SharedArrayBuffer(0);
         this._dataF32SAB = new Float32Array(this._dataSAB);
         this._gui = new GUI();

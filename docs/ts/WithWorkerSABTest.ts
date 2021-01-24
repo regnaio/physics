@@ -6,7 +6,7 @@ import { NUM_BYTES_FLOAT32 } from './binaryHelper';
 
 import { LogLevel, LogCategory, clog, cblog, now } from './utils';
 
-export class WithWorkerSAB {
+export class WithWorkerSABTest {
   private _canvas = document.getElementById('renderCanvas') as HTMLCanvasElement;
   private _engine = new BABYLON.Engine(this._canvas);
   private _scene = new BABYLON.Scene(this._engine, {
@@ -17,7 +17,7 @@ export class WithWorkerSAB {
   private _camera = new BABYLON.ArcRotateCamera('', 0, Math.PI / 4, 100, new BABYLON.Vector3(), this._scene);
   private _light = new BABYLON.HemisphericLight('', new BABYLON.Vector3(0, 100, 0), this._scene);
 
-  private _worker = new Worker('../dist/workerSAB.js');
+  private _worker = new Worker('../dist/workerSABTest.js');
 
   private _dataSAB = new SharedArrayBuffer(0);
   private _dataF32SAB = new Float32Array(this._dataSAB);

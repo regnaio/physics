@@ -30,12 +30,14 @@ export enum CollisionFlag {
 // How to use in Ammo in Babylon: https://github.com/BabylonJS/Babylon.js/pull/8028
 export enum CollisionFilterGroup {
   Environment = 1,
-  Other
+  Other = 2
 }
 
 export enum CollisionFilterMask {
   Environment = CollisionFilterGroup.Other,
-  Other = CollisionFilterGroup.Environment | CollisionFilterGroup.Other
+  // Other = CollisionFilterGroup.Environment | CollisionFilterGroup.Other
+  Other = CollisionFilterGroup.Environment
+  // Other = 0
 }
 
 export interface MotionState {

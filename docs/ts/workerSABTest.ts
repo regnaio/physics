@@ -1,4 +1,4 @@
-import { Physics } from './Physics';
+import { Physics } from './PhysicsTest';
 
 import { LogLevel, LogCategory, cblog, now } from './utils';
 
@@ -13,6 +13,33 @@ cblog('worker: physics:', LogLevel.Info, LogCategory.Worker, physics);
 
 let prevTime = now();
 
+// setInterval(() => {
+//   const currTime = now();
+//   const deltaTime = currTime - prevTime;
+//   // cblog(`worker: physicsLoop(): deltaTime: ${deltaTime}`, LogLevel.Debug, LogCategory.Worker);
+//   physics.onRenderUpdate(1 / 60);
+
+//   prevTime = currTime;
+// }, 1000 / 60);
+
+// Below causes spiral of death capped by _maxSteps, because onRenderUpdate cannot recover from 4 steps to 1 by itself
+// function physicsLoop(): void {
+//   const currTime = now();
+//   const deltaTime = currTime - prevTime;
+//   // cblog(`worker: physicsLoop(): deltaTime: ${deltaTime}`, LogLevel.Debug, LogCategory.Worker);
+//   physics.onRenderUpdate(deltaTime / 1000, dataF32SAB);
+
+//   const physicsStepComputeTime = dataF32SAB === undefined ? 0 : dataF32SAB[1];
+//   const difference = 1000 / 60 - physicsStepComputeTime;
+//   const timeoutDuration = difference < 0 ? 0 : difference;
+
+//   prevTime = currTime;
+//   setTimeout(physicsLoop, timeoutDuration);
+//   // requestAnimationFrame(physicsLoop);
+// }
+// physicsLoop();
+// // requestAnimationFrame(physicsLoop);
+
 const fixedTimeStep = 1 / 60;
 let accumulator = 0;
 function physicsLoop(): void {
@@ -22,7 +49,7 @@ function physicsLoop(): void {
 
   // if instead of while, which causes spiral of death (deltaTime and # of physics steps per call keeps growing)
   if (accumulator > fixedTimeStep) {
-    physics.onRenderUpdate(fixedTimeStep, true);
+    physics.onRenderUpdate(fixedTimeStep);
     // accumulator -= fixedTimeStep;
     accumulator = 0; // prevents physics speed up when physics step simulation time decreases
   }
