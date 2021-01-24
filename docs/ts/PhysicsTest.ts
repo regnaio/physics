@@ -24,10 +24,12 @@ interface TempData {
 
 interface TempResult {
   // ContactTest and ContactPairTest
-  contactTestCallback: Ammo.ConcreteContactResultCallback;
-  contactTestPositionA: Ammo.btVector3;
-  contactTestPositionB: Ammo.btVector3;
-  contactTestResult: boolean;
+  contactCallback: Ammo.ConcreteContactResultCallback;
+  contactWorldPositionA: Ammo.btVector3;
+  contactWorldPositionB: Ammo.btVector3;
+  contactLocalPositionA: Ammo.btVector3;
+  contactLocalPositionB: Ammo.btVector3;
+  contactResult: boolean;
 
   // RayTest
   closestRayResultCallback: Ammo.ClosestRayResultCallback;
@@ -37,6 +39,12 @@ let tempData: TempData;
 let tempResult: TempResult;
 
 let ground: RigidBody;
+
+// class Hi extends Ammo.ContactResultCallback {
+//   constructor() {
+
+//   }
+// }
 
 export class Physics {
   private _dynamicsWorld?: Ammo.btDiscreteDynamicsWorld;
@@ -79,10 +87,12 @@ export class Physics {
       };
 
       tempResult = {
-        contactTestCallback: new Ammo.ConcreteContactResultCallback(),
-        contactTestPositionA: new Ammo.btVector3(0, 0, 0),
-        contactTestPositionB: new Ammo.btVector3(0, 0, 0),
-        contactTestResult: false,
+        contactCallback: new Ammo.ConcreteContactResultCallback(),
+        contactWorldPositionA: new Ammo.btVector3(0, 0, 0),
+        contactWorldPositionB: new Ammo.btVector3(0, 0, 0),
+        contactLocalPositionA: new Ammo.btVector3(0, 0, 0),
+        contactLocalPositionB: new Ammo.btVector3(0, 0, 0),
+        contactResult: false,
         closestRayResultCallback: new Ammo.ClosestRayResultCallback(tempData.btVector3A, tempData.btVector3B)
       };
 
@@ -110,24 +120,32 @@ export class Physics {
   }
 
   private setupCallbacks(): void {
-    const { contactTestCallback, contactTestPositionA, contactTestPositionB } = tempResult;
+    const {
+      contactCallback,
+      contactWorldPositionA,
+      contactWorldPositionB,
+      contactLocalPositionA,
+      contactLocalPositionB
+    } = tempResult;
 
     // tempResult.contactTestCallback = new Ammo.ConcreteContactResultCallback();
-    contactTestCallback.addSingleResult = (cp, colObj0Wrap, partId0, index0, colObj1Wrap, partId1, index1) => {
+    contactCallback.addSingleResult = (cp, colObj0Wrap, partId0, index0, colObj1Wrap, partId1, index1) => {
       // @ts-ignore
       const contactPoint = Ammo.wrapPointer(cp, Ammo.btManifoldPoint) as Ammo.btManifoldPoint;
 
       const distance = contactPoint.getDistance();
       if (distance > 0) {
-        cblog(`contactTestCallback.addSingleResult(): distance ${distance} > 0`, LogLevel.Warn, LogCategory.Worker);
-        contactTestPositionA.setValue(0, 0, 0);
-        contactTestPositionB.setValue(0, 0, 0);
-        tempResult.contactTestResult = false;
+        cblog(`contactCallback.addSingleResult(): distance ${distance} > 0`, LogLevel.Warn, LogCategory.Worker);
+        contactWorldPositionA.setValue(0, 0, 0);
+        contactWorldPositionB.setValue(0, 0, 0);
+        contactLocalPositionA.setValue(0, 0, 0);
+        contactLocalPositionB.setValue(0, 0, 0);
+        tempResult.contactResult = false;
         return 0;
       }
 
-      cblog('contactTestCallback.addSingleResult(): hit', LogLevel.Debug, LogCategory.Worker);
-      // cblog('contactTestCallback', LogLevel.Debug, LogCategory.Worker, contactTestCallback);
+      cblog('contactCallback.addSingleResult(): hit', LogLevel.Debug, LogCategory.Worker);
+      // cblog('contactCallback', LogLevel.Debug, LogCategory.Worker, contactCallback);
 
       // @ts-ignore
       const colObj0 = Ammo.wrapPointer(colObj0Wrap, Ammo.btCollisionObjectWrapper) as Ammo.btCollisionObjectWrapper;
@@ -137,14 +155,18 @@ export class Physics {
       const colObj1 = Ammo.wrapPointer(colObj1Wrap, Ammo.btCollisionObjectWrapper) as Ammo.btCollisionObjectWrapper;
       // @ts-ignore
       const rb1 = Ammo.castObject(colObj1.getCollisionObject(), Ammo.btRigidBody) as Ammo.btRigidBody;
-      // clog('contactTestCallback.addSingleResult(): colObj0, rb0', LogLevel.Debug, colObj0, rb0);
-      // clog('contactTestCallback.addSingleResult(): colObj1, rb1', LogLevel.Debug, colObj1, rb1);
+      // clog('contactCallback.addSingleResult(): colObj0, rb0', LogLevel.Debug, colObj0, rb0);
+      // clog('contactCallback.addSingleResult(): colObj1, rb1', LogLevel.Debug, colObj1, rb1);
 
       const worldPositionA = contactPoint.getPositionWorldOnA();
-      contactTestPositionA.setValue(worldPositionA.x(), worldPositionA.y(), worldPositionA.z());
+      contactWorldPositionA.setValue(worldPositionA.x(), worldPositionA.y(), worldPositionA.z());
       const worldPositionB = contactPoint.getPositionWorldOnB();
-      contactTestPositionB.setValue(worldPositionB.x(), worldPositionB.y(), worldPositionB.z());
-      tempResult.contactTestResult = true;
+      contactWorldPositionB.setValue(worldPositionB.x(), worldPositionB.y(), worldPositionB.z());
+      const localPositionA = contactPoint.get_m_localPointA();
+      contactLocalPositionA.setValue(localPositionA.x(), localPositionA.y(), localPositionA.z());
+      const localPositionB = contactPoint.get_m_localPointB();
+      contactLocalPositionB.setValue(localPositionB.x(), localPositionB.y(), localPositionB.z());
+      tempResult.contactResult = true;
       return 0; // unused return value (https://pybullet.org/Bullet/phpBB3/viewtopic.php?t=5982)
     };
   }
@@ -184,6 +206,7 @@ export class Physics {
 
     btVector3A.setValue(-10, 0, 0);
     btQuaternionA.setEulerZYX(0, 0, -Math.PI / 6);
+    // btQuaternionA.normalize();
     const slide = new RigidBody(slideShape, btVector3A, btQuaternionA, {
       mass: 0,
       friction: 1,
@@ -278,7 +301,9 @@ export class Physics {
       this._dynamicsWorld.stepSimulation(this._fixedTimeStep, MAX_SUBSTEPS_PER_STEP);
       // clog('onRenderUpdate(): stepSimulation', LogLevel.Debug);
 
-      const { contactTestCallback } = tempResult;
+      // this.detectCollisions();
+
+      const { contactCallback } = tempResult;
 
       if (this._didAdd) {
         // const { numToAdd } = this._gui.datData;
@@ -289,8 +314,8 @@ export class Physics {
             cblog('onRenderUpdate(): rigidBody === undefined', LogLevel.Warn, LogCategory.Worker);
             break;
           }
-          
-          this._dynamicsWorld.contactTest(rigidBody.getRigidBody(), contactTestCallback);
+
+          this._dynamicsWorld.contactTest(rigidBody.getRigidBody(), contactCallback);
           // @ts-ignore
           // this._dynamicsWorld.contactTest(Ammo.castObject(rigidBody.getRigidBody(), Ammo.btCollisionObject) as Ammo.btCollisionObject, contactTestCallback);
           // this._dynamicsWorld.contactPairTest(rigidBody.getRigidBody(), ground.getRigidBody(), contactTestCallback);
@@ -343,6 +368,41 @@ export class Physics {
     }
   }
 
+  private detectCollisions(): void {
+    if (this._dynamicsWorld === undefined) {
+      cblog('detectCollision(): _dynamicsWorld === undefined', LogLevel.Warn, LogCategory.Worker);
+      return;
+    }
+
+    const dispatcher = this._dynamicsWorld.getDispatcher();
+    const numManifolds = dispatcher.getNumManifolds();
+    for (let i = 0; i < numManifolds; ++i) {
+      const contactManifold = dispatcher.getManifoldByIndexInternal(i);
+
+      // @ts-ignore
+      const rb0 = Ammo.castObject(contactManifold.getBody0(), Ammo.btRigidBody) as Ammo.btRigidBody;
+      // @ts-ignore
+      const rb1 = Ammo.castObject(contactManifold.getBody1(), Ammo.btRigidBody) as Ammo.btRigidBody;
+
+      const numContacts = contactManifold.getNumContacts();
+      for (let j = 0; j < numContacts; ++j) {
+        const contactPoint = contactManifold.getContactPoint(j);
+        const distance = contactPoint.getDistance();
+
+        if (distance > 0) {
+          cblog(`detectCollision(): distance ${distance} > 0`, LogLevel.Warn, LogCategory.Worker);
+          return;
+        }
+
+        cblog('detectCollision(): hit', LogLevel.Warn, LogCategory.Worker);
+        const worldPositionA = contactPoint.get_m_positionWorldOnA();
+        const worldPositionB = contactPoint.get_m_positionWorldOnB();
+        const localPositionA = contactPoint.get_m_localPointA();
+        const localPositionB = contactPoint.get_m_localPointB();
+      }
+    }
+  }
+
   private raycast(fromX: number, fromY: number, fromZ: number, toX: number, toY: number, toZ: number): void {
     if (this._dynamicsWorld === undefined) {
       cblog('raycast(): _dynamicsWorld === undefined', LogLevel.Warn, LogCategory.Worker);
@@ -354,6 +414,10 @@ export class Physics {
 
     btVector3A.setValue(fromX, fromY, fromZ);
     btVector3B.setValue(toX, toY, toZ);
+
+    const collisionFilterGroup = closestRayResultCallback.get_m_collisionFilterGroup();
+    const collisionFilterMask = closestRayResultCallback.get_m_collisionFilterMask();
+    cblog(`raycast(): collisionFilterGroup: ${collisionFilterGroup}, collisionFilterMask: ${collisionFilterMask}`, LogLevel.Warn, LogCategory.Worker);
 
     this._dynamicsWorld.rayTest(btVector3A, btVector3B, closestRayResultCallback);
 
