@@ -1,5 +1,7 @@
 import { CollisionFilterGroup, CollisionFilterMask, ActivationState, CollisionFlag } from './physicsHelper';
 
+import { LogLevel, LogCategory, cblog } from './utils';
+
 export interface RigidBodyOptions {
   mass: number;
   friction?: number;
@@ -16,7 +18,6 @@ export class RigidBody {
   private _motionState: Ammo.btDefaultMotionState;
   private _rbInfo: Ammo.btRigidBodyConstructionInfo;
   private _rigidBody: Ammo.btRigidBody;
-  // private _rigidBody: Ammo.btGhostObject;
 
   // position and rotation are temporary btVector3 for initial placement
   constructor(private _colShape: Ammo.btCollisionShape, position: Ammo.btVector3, rotation: Ammo.btQuaternion, private _options: RigidBodyOptions) {
@@ -72,10 +73,9 @@ export class RigidBody {
 
     if (collisionFilterGroup !== undefined && collisionFilterMask !== undefined) {
       dynamicsWorld.addRigidBody(this._rigidBody, collisionFilterGroup, collisionFilterMask);
-      // dynamicsWorld.addCollisionObject(this._rigidBody, collisionFilterGroup, collisionFilterMask);
     } else {
+      cblog('collisionFilterGroup === undefined || collisionFilterMask === undefined', LogLevel.Error, LogCategory.Worker);
       dynamicsWorld.addRigidBody(this._rigidBody);
-      // dynamicsWorld.addCollisionObject(this._rigidBody);
     }
 
     // this._rigidBody.setGravity(new Ammo.btVector3(0, 0, 0));
@@ -84,7 +84,6 @@ export class RigidBody {
 
   remove(dynamicsWorld: Ammo.btDiscreteDynamicsWorld): void {
     dynamicsWorld.removeRigidBody(this._rigidBody);
-    // dynamicsWorld.removeCollisionObject(this._rigidBody);
   }
 
   destroy(): void {

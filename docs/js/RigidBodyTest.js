@@ -1,5 +1,5 @@
+import { LogLevel, LogCategory, cblog } from './utils';
 export class RigidBody {
-    // private _rigidBody: Ammo.btGhostObject;
     // position and rotation are temporary btVector3 for initial placement
     constructor(_colShape, position, rotation, _options) {
         this._colShape = _colShape;
@@ -45,18 +45,16 @@ export class RigidBody {
         const { collisionFilterGroup, collisionFilterMask } = this._options;
         if (collisionFilterGroup !== undefined && collisionFilterMask !== undefined) {
             dynamicsWorld.addRigidBody(this._rigidBody, collisionFilterGroup, collisionFilterMask);
-            // dynamicsWorld.addCollisionObject(this._rigidBody, collisionFilterGroup, collisionFilterMask);
         }
         else {
+            cblog('collisionFilterGroup === undefined || collisionFilterMask === undefined', LogLevel.Error, LogCategory.Worker);
             dynamicsWorld.addRigidBody(this._rigidBody);
-            // dynamicsWorld.addCollisionObject(this._rigidBody);
         }
         // this._rigidBody.setGravity(new Ammo.btVector3(0, 0, 0));
         // this._rigidBody.setLinearVelocity(new Ammo.btVector3(1e2, 0, 0));
     }
     remove(dynamicsWorld) {
         dynamicsWorld.removeRigidBody(this._rigidBody);
-        // dynamicsWorld.removeCollisionObject(this._rigidBody);
     }
     destroy() {
         Ammo.destroy(this._rigidBody);
