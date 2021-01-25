@@ -20,31 +20,32 @@ interface TempData {
   btVector3B: Ammo.btVector3;
   btTransformA: Ammo.btTransform;
   btQuaternionA: Ammo.btQuaternion;
+  // btVector3RayFrom: Ammo.btVector3;
+  // btVector3RayTo: Ammo.btVector3;
 }
 
 interface TempResult {
   // ContactTest and ContactPairTest
   contactCallback: Ammo.ConcreteContactResultCallback;
+  // contactCallback: Ammo.ContactResultCallback;
   contactWorldPositionA: Ammo.btVector3;
   contactWorldPositionB: Ammo.btVector3;
   contactLocalPositionA: Ammo.btVector3;
   contactLocalPositionB: Ammo.btVector3;
+  contactRigidBodyA?: Ammo.btRigidBody;
+  contactRigidBodyB?: Ammo.btRigidBody;
   contactResult: boolean;
 
   // RayTest
-  closestRayResultCallback: Ammo.ClosestRayResultCallback;
+  // rayCallback: Ammo.ClosestRayResultCallback;
+  hitWorldPosition: Ammo.btVector3;
+  hitRigidBody?: Ammo.btRigidBody;
 }
 
 let tempData: TempData;
 let tempResult: TempResult;
 
 let ground: RigidBody;
-
-// class Hi extends Ammo.ContactResultCallback {
-//   constructor() {
-
-//   }
-// }
 
 export class Physics {
   private _dynamicsWorld?: Ammo.btDiscreteDynamicsWorld;
@@ -84,16 +85,21 @@ export class Physics {
         btVector3B: new Ammo.btVector3(0, 0, 0),
         btTransformA: new Ammo.btTransform(),
         btQuaternionA: new Ammo.btQuaternion(0, 0, 0, 1)
+        // btVector3RayFrom: new Ammo.btVector3(0, 0, 0),
+        // btVector3RayTo: new Ammo.btVector3(0, 0, 0)
       };
 
       tempResult = {
         contactCallback: new Ammo.ConcreteContactResultCallback(),
+        // contactCallback: new Ammo.ContactResultCallback(),
         contactWorldPositionA: new Ammo.btVector3(0, 0, 0),
         contactWorldPositionB: new Ammo.btVector3(0, 0, 0),
         contactLocalPositionA: new Ammo.btVector3(0, 0, 0),
         contactLocalPositionB: new Ammo.btVector3(0, 0, 0),
         contactResult: false,
-        closestRayResultCallback: new Ammo.ClosestRayResultCallback(tempData.btVector3A, tempData.btVector3B)
+
+        // rayCallback: new Ammo.ClosestRayResultCallback(tempData.btVector3RayFrom, tempData.btVector3RayTo),
+        hitWorldPosition: new Ammo.btVector3(0, 0, 0)
       };
 
       const collisionConfiguration = new Ammo.btDefaultCollisionConfiguration();
@@ -111,7 +117,7 @@ export class Physics {
       btVector3A.setValue(0, GRAVITY, 0);
       this._dynamicsWorld.setGravity(btVector3A);
 
-      this.setupCallbacks();
+      this.setupContactCallback();
 
       this.loadEnvironment();
     } catch (err) {
@@ -119,56 +125,67 @@ export class Physics {
     }
   }
 
-  private setupCallbacks(): void {
-    const {
-      contactCallback,
-      contactWorldPositionA,
-      contactWorldPositionB,
-      contactLocalPositionA,
-      contactLocalPositionB
-    } = tempResult;
+  private setupContactCallback(): void {
+    const { contactCallback } = tempResult;
 
-    // tempResult.contactTestCallback = new Ammo.ConcreteContactResultCallback();
-    contactCallback.addSingleResult = (cp, colObj0Wrap, partId0, index0, colObj1Wrap, partId1, index1) => {
-      // @ts-ignore
-      const contactPoint = Ammo.wrapPointer(cp, Ammo.btManifoldPoint) as Ammo.btManifoldPoint;
+    contactCallback.addSingleResult = this.addSingleResult;
+  }
 
-      const distance = contactPoint.getDistance();
-      if (distance > 0) {
-        cblog(`contactCallback.addSingleResult(): distance ${distance} > 0`, LogLevel.Warn, LogCategory.Worker);
-        contactWorldPositionA.setValue(0, 0, 0);
-        contactWorldPositionB.setValue(0, 0, 0);
-        contactLocalPositionA.setValue(0, 0, 0);
-        contactLocalPositionB.setValue(0, 0, 0);
-        tempResult.contactResult = false;
-        return 0;
-      }
+  private addSingleResult(
+    cp: Ammo.btManifoldPoint,
+    colObj0Wrap: Ammo.btCollisionObjectWrapper,
+    partId0: number,
+    index0: number,
+    colObj1Wrap: Ammo.btCollisionObjectWrapper,
+    partId1: number,
+    index1: number
+  ) {
+    const { contactWorldPositionA, contactWorldPositionB, contactLocalPositionA, contactLocalPositionB } = tempResult;
 
-      cblog('contactCallback.addSingleResult(): hit', LogLevel.Debug, LogCategory.Worker);
-      // cblog('contactCallback', LogLevel.Debug, LogCategory.Worker, contactCallback);
+    // @ts-ignore
+    const contactPoint = Ammo.wrapPointer(cp, Ammo.btManifoldPoint) as Ammo.btManifoldPoint;
 
-      // @ts-ignore
-      const colObj0 = Ammo.wrapPointer(colObj0Wrap, Ammo.btCollisionObjectWrapper) as Ammo.btCollisionObjectWrapper;
-      // @ts-ignore
-      const rb0 = Ammo.castObject(colObj0.getCollisionObject(), Ammo.btRigidBody) as Ammo.btRigidBody;
-      // @ts-ignore
-      const colObj1 = Ammo.wrapPointer(colObj1Wrap, Ammo.btCollisionObjectWrapper) as Ammo.btCollisionObjectWrapper;
-      // @ts-ignore
-      const rb1 = Ammo.castObject(colObj1.getCollisionObject(), Ammo.btRigidBody) as Ammo.btRigidBody;
-      // clog('contactCallback.addSingleResult(): colObj0, rb0', LogLevel.Debug, colObj0, rb0);
-      // clog('contactCallback.addSingleResult(): colObj1, rb1', LogLevel.Debug, colObj1, rb1);
+    const distance = contactPoint.getDistance();
+    if (distance > 0) {
+      cblog(`contactCallback.addSingleResult(): distance ${distance} > 0`, LogLevel.Warn, LogCategory.Worker);
+      contactWorldPositionA.setValue(0, 0, 0);
+      contactWorldPositionB.setValue(0, 0, 0);
+      contactLocalPositionA.setValue(0, 0, 0);
+      contactLocalPositionB.setValue(0, 0, 0);
+      tempResult.contactRigidBodyA = undefined;
+      tempResult.contactRigidBodyB = undefined;
+      tempResult.contactResult = false;
+      return 0;
+    }
 
-      const worldPositionA = contactPoint.getPositionWorldOnA();
-      contactWorldPositionA.setValue(worldPositionA.x(), worldPositionA.y(), worldPositionA.z());
-      const worldPositionB = contactPoint.getPositionWorldOnB();
-      contactWorldPositionB.setValue(worldPositionB.x(), worldPositionB.y(), worldPositionB.z());
-      const localPositionA = contactPoint.get_m_localPointA();
-      contactLocalPositionA.setValue(localPositionA.x(), localPositionA.y(), localPositionA.z());
-      const localPositionB = contactPoint.get_m_localPointB();
-      contactLocalPositionB.setValue(localPositionB.x(), localPositionB.y(), localPositionB.z());
-      tempResult.contactResult = true;
-      return 0; // unused return value (https://pybullet.org/Bullet/phpBB3/viewtopic.php?t=5982)
-    };
+    cblog('contactCallback.addSingleResult(): hit', LogLevel.Debug, LogCategory.Worker);
+    // cblog('contactCallback', LogLevel.Debug, LogCategory.Worker, contactCallback);
+
+    // @ts-ignore
+    const colObj0 = Ammo.wrapPointer(colObj0Wrap, Ammo.btCollisionObjectWrapper) as Ammo.btCollisionObjectWrapper;
+    // @ts-ignore
+    const rb0 = Ammo.castObject(colObj0.getCollisionObject(), Ammo.btRigidBody) as Ammo.btRigidBody;
+    tempResult.contactRigidBodyA = rb0;
+
+    // @ts-ignore
+    const colObj1 = Ammo.wrapPointer(colObj1Wrap, Ammo.btCollisionObjectWrapper) as Ammo.btCollisionObjectWrapper;
+    // @ts-ignore
+    const rb1 = Ammo.castObject(colObj1.getCollisionObject(), Ammo.btRigidBody) as Ammo.btRigidBody;
+    tempResult.contactRigidBodyB = rb1;
+
+    // clog('contactCallback.addSingleResult(): colObj0, rb0', LogLevel.Debug, colObj0, rb0);
+    // clog('contactCallback.addSingleResult(): colObj1, rb1', LogLevel.Debug, colObj1, rb1);
+
+    const worldPositionA = contactPoint.getPositionWorldOnA();
+    contactWorldPositionA.setValue(worldPositionA.x(), worldPositionA.y(), worldPositionA.z());
+    const worldPositionB = contactPoint.getPositionWorldOnB();
+    contactWorldPositionB.setValue(worldPositionB.x(), worldPositionB.y(), worldPositionB.z());
+    const localPositionA = contactPoint.get_m_localPointA();
+    contactLocalPositionA.setValue(localPositionA.x(), localPositionA.y(), localPositionA.z());
+    const localPositionB = contactPoint.get_m_localPointB();
+    contactLocalPositionB.setValue(localPositionB.x(), localPositionB.y(), localPositionB.z());
+    tempResult.contactResult = true;
+    return 0; // unused return value (https://pybullet.org/Bullet/phpBB3/viewtopic.php?t=5982)
   }
 
   private loadEnvironment(): void {
@@ -315,7 +332,14 @@ export class Physics {
             break;
           }
 
-          this._dynamicsWorld.contactTest(rigidBody.getRigidBody(), contactCallback);
+          // // @ts-ignore
+          // contactCallback.m_collisionFilterGroup = CollisionFilterGroup.Environment;
+          // // @ts-ignore
+          // contactCallback.m_collisionFilterMask = CollisionFilterMask.Environment;
+          // // this.contactTest(rigidBody);
+          // this._dynamicsWorld.contactTest(rigidBody.getRigidBody(), contactCallback);
+          // cblog(`contactCallback: ${contactCallback}`, LogLevel.Debug, LogCategory.Worker);
+
           // @ts-ignore
           // this._dynamicsWorld.contactTest(Ammo.castObject(rigidBody.getRigidBody(), Ammo.btCollisionObject) as Ammo.btCollisionObject, contactTestCallback);
           // this._dynamicsWorld.contactPairTest(rigidBody.getRigidBody(), ground.getRigidBody(), contactTestCallback);
@@ -342,8 +366,8 @@ export class Physics {
             cblog('onRenderUpdate(): !motionState', LogLevel.Error, LogCategory.Worker);
           }
 
-          // const p = this._rigidBodies[i].getOrigin();
-          // const q = this._rigidBodies[i].getRotation();
+          const p = this._rigidBodies[i].getOrigin();
+          const q = this._rigidBodies[i].getRotation();
           // this._motionStates[i] = {
           //   position: {
           //     x: p.x(),
@@ -357,6 +381,18 @@ export class Physics {
           //     w: q.w()
           //   }
           // };
+
+          // this.rayTest(
+          //   p.x(),
+          //   p.y(),
+          //   p.z(),
+          //   p.x(),
+          //   p.y() - 1,
+          //   p.z(),
+          //   CollisionFilterGroup.Other,
+          //   CollisionFilterMask.Other
+          // );
+          // const rigidBody = Ammo.btRigidBody.prototype.upcast(collisionObject);
         }
       }
 
@@ -370,7 +406,7 @@ export class Physics {
 
   private detectCollisions(): void {
     if (this._dynamicsWorld === undefined) {
-      cblog('detectCollision(): _dynamicsWorld === undefined', LogLevel.Warn, LogCategory.Worker);
+      cblog('detectCollisions(): _dynamicsWorld === undefined', LogLevel.Warn, LogCategory.Worker);
       return;
     }
 
@@ -390,11 +426,11 @@ export class Physics {
         const distance = contactPoint.getDistance();
 
         if (distance > 0) {
-          cblog(`detectCollision(): distance ${distance} > 0`, LogLevel.Warn, LogCategory.Worker);
+          cblog(`detectCollisions(): distance ${distance} > 0`, LogLevel.Warn, LogCategory.Worker);
           return;
         }
 
-        cblog('detectCollision(): hit', LogLevel.Warn, LogCategory.Worker);
+        cblog('detectCollisions(): hit', LogLevel.Warn, LogCategory.Worker);
         const worldPositionA = contactPoint.get_m_positionWorldOnA();
         const worldPositionB = contactPoint.get_m_positionWorldOnB();
         const localPositionA = contactPoint.get_m_localPointA();
@@ -403,27 +439,64 @@ export class Physics {
     }
   }
 
-  private raycast(fromX: number, fromY: number, fromZ: number, toX: number, toY: number, toZ: number): void {
+  private contactTest(rigidBody: RigidBody): void {
     if (this._dynamicsWorld === undefined) {
-      cblog('raycast(): _dynamicsWorld === undefined', LogLevel.Warn, LogCategory.Worker);
+      cblog('contactTest(): _dynamicsWorld === undefined', LogLevel.Error, LogCategory.Worker);
+      return;
+    }
+
+    const contactCallback = new Ammo.ConcreteContactResultCallback();
+    contactCallback.addSingleResult = this.addSingleResult;
+    this._dynamicsWorld.contactTest(rigidBody.getRigidBody(), contactCallback);
+
+    Ammo.destroy(contactCallback);
+  }
+
+  private rayTest(
+    fromX: number,
+    fromY: number,
+    fromZ: number,
+    toX: number,
+    toY: number,
+    toZ: number,
+    collisionFilterGroup: CollisionFilterGroup,
+    collisionFilterMask: CollisionFilterMask
+  ): void {
+    if (this._dynamicsWorld === undefined) {
+      cblog('raycast(): _dynamicsWorld === undefined', LogLevel.Error, LogCategory.Worker);
       return;
     }
 
     const { btVector3A, btVector3B } = tempData;
-    const { closestRayResultCallback } = tempResult;
+    // const { rayCallback, hitWorldPosition } = tempResult;
+    const { hitWorldPosition } = tempResult;
 
     btVector3A.setValue(fromX, fromY, fromZ);
     btVector3B.setValue(toX, toY, toZ);
 
-    const collisionFilterGroup = closestRayResultCallback.get_m_collisionFilterGroup();
-    const collisionFilterMask = closestRayResultCallback.get_m_collisionFilterMask();
-    cblog(`raycast(): collisionFilterGroup: ${collisionFilterGroup}, collisionFilterMask: ${collisionFilterMask}`, LogLevel.Warn, LogCategory.Worker);
+    // cblog(
+    //   `raycast(): collisionFilterGroup: ${rayCallback.get_m_collisionFilterGroup()}, collisionFilterMask: ${rayCallback.get_m_collisionFilterMask()}`,
+    //   LogLevel.Warn,
+    //   LogCategory.Worker
+    // );
+    const rayCallback = new Ammo.ClosestRayResultCallback(btVector3A, btVector3B);
+    rayCallback.set_m_collisionFilterGroup(collisionFilterGroup);
+    rayCallback.set_m_collisionFilterMask(collisionFilterMask);
 
-    this._dynamicsWorld.rayTest(btVector3A, btVector3B, closestRayResultCallback);
+    this._dynamicsWorld.rayTest(btVector3A, btVector3B, rayCallback);
 
-    if (closestRayResultCallback.hasHit()) {
-      Ammo.btRigidBody.prototype.upcast(closestRayResultCallback.get_m_collisionObject());
-      closestRayResultCallback.get_m_hitPointWorld();
+    if (rayCallback.hasHit()) {
+      cblog('raycast(): rayCallback.hasHit()', LogLevel.Warn, LogCategory.Worker);
+      cblog(`raycast(): fromX: ${fromX}, fromY: ${fromY}, fromZ: ${fromZ}`, LogLevel.Warn, LogCategory.Worker);
+      cblog(`raycast(): toX: ${toX}, toY: ${toY}, toZ: ${toZ}`, LogLevel.Warn, LogCategory.Worker);
+      const collisionObject = rayCallback.get_m_collisionObject();
+      const rigidBody = Ammo.btRigidBody.prototype.upcast(collisionObject);
+      tempResult.hitRigidBody = rigidBody;
+
+      const worldPosition = rayCallback.get_m_hitPointWorld();
+      hitWorldPosition.setValue(worldPosition.x(), worldPosition.y(), worldPosition.z());
     }
+
+    Ammo.destroy(rayCallback);
   }
 }
