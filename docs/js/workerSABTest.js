@@ -37,8 +37,12 @@ function physicsLoop() {
     // if instead of while, which causes spiral of death (deltaTime and # of physics steps per call keeps growing)
     if (accumulator > fixedTimeStep) {
         physics.onRenderUpdate(fixedTimeStep);
-        accumulator -= fixedTimeStep;
-        // accumulator = 0; // prevents physics speed up when physics step simulation time decreases
+        // good for limited FPS, prevents slow down
+        // bad for uncapped FPS, unbounded accumulator causes physics speed up when physics step simulation time decreases
+        // accumulator -= fixedTimeStep;
+        // good for uncapped FPS, prevents physics speed up when physics step simulation time decreases by resetting accumulator
+        // bad for limited FPS, causes slow down
+        accumulator = 0;
     }
     prevTime = currTime;
     requestAnimationFrame(physicsLoop);
